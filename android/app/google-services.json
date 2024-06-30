@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "427872411983",
+    "firebase_url": "https://tay-rona-flutter-default-rtdb.firebaseio.com",
+    "project_id": "tay-rona-flutter",
+    "storage_bucket": "tay-rona-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:427872411983:android:34e1386d81bdaaa4f3a53a",
+        "android_client_info": {
+          "package_name": "com.tayronaconductor.tayrona_conductor_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3GsIJaOaJOaWeWdS4ElcRWxor3Gx-IoA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:427872411983:android:eb64849a94ebe827f3a53a",
+        "android_client_info": {
+          "package_name": "com.tayronausuario.tayrona_usuario"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3GsIJaOaJOaWeWdS4ElcRWxor3Gx-IoA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
