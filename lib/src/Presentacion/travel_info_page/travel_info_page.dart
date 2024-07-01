@@ -8,8 +8,6 @@ import 'package:tayrona_usuario/src/Presentacion/travel_info_page/travel_info_Co
 import 'package:tayrona_usuario/src/colors/colors.dart';
 import '../../../Helpers/Validators/FormValidators.dart';
 import '../commons_widgets/headers/header_text/header_text.dart';
-import '../map_client_page/View/map_client_page.dart';
-import '../travel_map_page/View/travel_map_page.dart';
 
 
 class ClientTravelInfoPage extends StatefulWidget {
@@ -48,7 +46,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
       setState(() {});
     });
     _verificarAceptoTerminos();
-    print('Tipo de servicio**************************************$tipoServicio');
+
   }
 
   @override
@@ -268,8 +266,8 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
             children: [
               GestureDetector(
                 onTap: (){
-                  tipoServicio = 'Transporte';
-                  _controller.guardarTipoServicioCarro(tipoServicio!);
+                  //tipoServicio = 'Transporte';
+                  _controller.guardarTipoServicio("Transporte");
                   print('Tipo de servicio seleccionado en el boton Trnasporte**************************************$tipoServicio');
                   if (mounted) {
                     setState(() {
@@ -325,8 +323,8 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                     children: [
                       GestureDetector(
                         onTap: (){
-                          tipoServicio = 'Moto';
-                          _controller.guardarTipoServicioMoto(tipoServicio!);
+                          //tipoServicio = 'Moto';
+                          _controller.guardarTipoServicio('Moto');
                           print('ipo de servicio seleccionado en el boton moto***********************************$tipoServicio');
                           if (mounted) {
                             setState(() {
@@ -378,8 +376,8 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                     children: [
                       GestureDetector(
                         onTap: (){
-                          tipoServicio = 'Encomienda';
-                          _controller.guardarTipoServicioEncomienfa(tipoServicio!);
+                          //tipoServicio = 'Encomienda';
+                          _controller.guardarTipoServicio('Encomienda');
                           print('ipo de servicio seleccionado en el boton Trnasporte**************************$tipoServicio');
                           if (mounted) {
                             setState(() {
@@ -456,6 +454,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
               style: ElevatedButton.styleFrom(backgroundColor: primary),
               onPressed: () {
                 verificarCedulaInicial();
+
               },
               icon: const Icon(Icons.check_circle, size: 30, color: blanco,),
               label: const Text(
@@ -490,17 +489,6 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
       ),
     );
   }
-
-
-  // void _saveTipoServicio(String tipoServicio) async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('tipoServicio', tipoServicio);
-  // }
-  //
-  // void _saveApuntesAlConductor(String apuntesAlConductor) async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('apuntes_al_conductor', apuntesAlConductor);
-  // }
 
   Widget _apuntesAlConductor(){
     return Visibility(
@@ -599,7 +587,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
       _startSearch();
       _controller.createTravelInfo();
-      _controller.seleccionarBusquedaCarroMoto();
+      _controller.seleccionarBusquedaSegunTipoServicio();
       //_controller.getNearbyDrivers();
     }
   }
@@ -712,91 +700,113 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
     );
   }
 
-  Widget _tarjetaSolicitandoConductor(){
+  Widget _tarjetaSolicitandoConductor() {
     if (!mounted) {
       return Container(); // Retorna un widget vacío si el widget ya no está montado
     }
+    _controller.obtenerTipoServicio();
     return Visibility(
-        visible: isVisibleTarjetaSolicitandoConductor,
-        child: Container(
-              height: double.infinity,
-              padding: const EdgeInsets.only(top: 50, left: 30, right: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(26),
-                  topRight: Radius.circular(26)
-                ),
-                color: blanco,
-              ),
-
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-
-              Image.asset(
-                'assets/images/logo_tayrona_solo.png', // Reemplaza 'ruta_de_la_imagen' con la ruta de tu imagen
-                width: 50, // Ajusta el ancho de la imagen según sea necesario
-                height: 50, // Ajusta la altura de la imagen según sea necesario
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Buscando conductores disponibles',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: negro),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  // SpinKitRipple
-                  if (_isSearching)
-                    const SpinKitRipple(
-                      color: primary, // Color del indicador de carga
-                      size: 250.0, // Tamaño del indicador de carga
-                    ),
-
-                  // if(_controller.client?.image != null)
-                  //   CircleAvatar(
-                  //     backgroundColor: blanco,
-                  //     radius: 40,
-                  //     backgroundImage: NetworkImage(_controller.client!.image),
-                  //   )
-                ],
-              ),
-
-              const Text(
-                'Esperando respuesta...',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: negroLetras),
-              ),
-              const SizedBox(height: 50),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                onPressed: () {
-                  if (mounted) {
-                    setState(() {
-                      isVisibleTarjetaSolicitandoConductor = false;
-                      _isSearching = false;
-                    });
-                  }
-                  // Navigator.pushAndRemoveUntil(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => const ClientTravelInfoPage()),
-                  //       (route) => false,
-                  // );
-                  _controller.deleteTravelInfo();
-
-                },
-                icon: const Icon(Icons.cancel, color: blanco),
-                label: const Text('Cancelar el Viaje', style: TextStyle(color: blanco)),
-              ),
-            ],
+      visible: isVisibleTarjetaSolicitandoConductor,
+      child: Container(
+        height: double.infinity,
+        padding: const EdgeInsets.only(top: 50, left: 30, right: 30),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(26),
+            topRight: Radius.circular(26),
           ),
-
+          color: blancoCards,
         ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
 
-      );
+            const SizedBox(height: 10),
+            _getSearchingImage(),
+            Text(
+              _getSearchingText(), // Usar función para obtener el texto según tipoServicio
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: negro),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                if (_isSearching)
+                  const SpinKitRipple(
+                    color: primary,
+                    size: 200.0,
+                  ),
+                Image.asset(
+                  'assets/images/logo_tayrona_solo.png',
+                  width: 30,
+                  height: 30,
+                ),
+
+              ],
+            ),
+            const Text(
+              'Esperando respuesta...',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: negro),
+            ),
+            const SizedBox(height: 50),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              onPressed: () {
+                if (mounted) {
+                  setState(() {
+                    isVisibleTarjetaSolicitandoConductor = false;
+                    _isSearching = false;
+                  });
+                }
+                _controller.deleteTravelInfo();
+              },
+              icon: const Icon(Icons.cancel, color: blanco),
+              label: const Text('Cancelar el Viaje', style: TextStyle(color: blanco)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
+  // Función para obtener el texto de búsqueda según tipoServicio
+  String _getSearchingText() {
+    switch (_controller.tipoServicioSeleccionado) {
+      case "Transporte":
+        return 'Buscando AUTOMOBILES disponibles';
+      case "Moto":
+        return 'Buscando MOTOCICLISTAS disponibles';
+      case "Encomienda":
+        return 'Buscando quién entregue tu ENCOMIENDA';
+      default:
+        return 'Buscando conductores disponibles';
+    }
+  }
+
+  Widget _getSearchingImage() {
+    String imagePath;
+    switch (_controller.tipoServicioSeleccionado) {
+      case "Transporte":
+        imagePath = 'assets/images/tarjeta_carro.png';
+        break;
+      case "Moto":
+        imagePath = 'assets/images/tarjeta_moto.png';
+        break;
+      case "Encomienda":
+        imagePath = 'assets/images/tarjeta_encomienda.png';
+        break;
+      default:
+        imagePath = 'assets/images/check_verde.png'; // Imagen por defecto si no coincide ninguno
+        break;
+    }
+
+    return Image.asset(
+      imagePath,
+      width: 130, // Ajusta el ancho de la imagen según sea necesario
+      height: 130, // Ajusta la altura de la imagen según sea necesario
+    );
+  }
   void _startSearch() {
     if (mounted) {
       setState(() {

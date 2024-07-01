@@ -38,8 +38,9 @@ class TravelInfoController{
   late PushNotificationsProvider _pushNotificationsProvider;
   late ClientProvider _clientProvider;
   Client? client;
-  String? tipoServicio = "";
+  String? tipoServicio = "Transporte";
   String? apuntesAlConductor;
+  String? tipoServicioSeleccionado = "Transporte";
 
   late Function refresh;
   GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
@@ -124,22 +125,23 @@ class TravelInfoController{
     }
   }
 
-  void guardarTipoServicioCarro(String tipoServicio) async {
+  void guardarTipoServicio(String tipoServicio) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('tipoServicio', tipoServicio);
     print('Tipo de servicio guardado en SharedPreferencesXXXXX: $tipoServicio');
+    //obtenerTipoServicio();
   }
 
-  void guardarTipoServicioMoto(String tipoServicio) async {
+  void obtenerTipoServicio() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tipoServicio', tipoServicio);
-    print('Tipo de servicio guardado en SharedPreferencesXXXXXX: $tipoServicio');
-  }
-
-  void guardarTipoServicioEncomienfa(String tipoServicio) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tipoServicio', tipoServicio);
-    print('Tipo de servicio guardado en SharedPreferencesXXXXXXXX: $tipoServicio');
+    tipoServicioSeleccionado = prefs.getString('tipoServicio');
+    if (tipoServicioSeleccionado != null) {
+      print('Tipo de servicio recuperado de SharedPreferences: $tipoServicioSeleccionado');
+      // Aquí podrías asignar tipoServicio a _controller.tipoServicio si es necesario
+    } else {
+      print('No se encontró tipo_servicio en SharedPreferences');
+      // Manejo adicional si es necesario cuando tipo_servicio no está disponible
+    }
   }
 
   void guardarApuntesConductor(String apuntes) async {
@@ -150,7 +152,7 @@ class TravelInfoController{
 
   void clearTipoServicio() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tipoServicio', tipoServicio!);
+    await prefs.setString('tipoServicio', "Transporte");
     print('Tipo de servicio guardado en SharedPreferences luego de presionar boton cancelar: $tipoServicio');
   }
 
@@ -164,7 +166,7 @@ class TravelInfoController{
       await _travelInfoProvider.delete(_authProvider.getUser()!.uid);
       print('Documento borrado exitosamente');
       _streamStatusSuscription.cancel();
-      clearTipoServicio();
+      //clearTipoServicio();
     } catch (e) {
       print('Error al borrar el documento: $e');
     }
@@ -471,25 +473,34 @@ class TravelInfoController{
     return null; // Devolver nulo si no se puede extraer la ciudad
   }
 
-  void seleccionarBusquedaCarroMoto() async {
+  void seleccionarBusquedaSegunTipoServicio() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? tipoDeServicio = prefs.getString('tipoServicio');
-    print("TIPO DE SERVICIO NEW **************************************** $tipoDeServicio");
-    if(tipoDeServicio != null) {
-      if(tipoDeServicio == "Transporte"){
-        print("Buscando conductores disponibles new ****************************************");
-        getNearbyDrivers();
-      }else if(tipoDeServicio == "Moto"){
-        getNearbyMotorcyclers();
-        print("Buscando conductores motociclistas new ****************************************");
-      }else if(tipoDeServicio == "Encomienda"){
-        print("se va a buscar un servicio de encomienda ****************************************");
+    print("Tipo de servicio seleccionado: $tipoDeServicio");
 
-        //getNearbyDrivers(); /////// se debe crear el metodo para las encomiendas
+    if (tipoDeServicio != null) {
+      switch (tipoDeServicio) {
+        case "Transporte":
+          print("Buscando conductores disponibles...");
+          getNearbyDrivers();
+          break;
+        case "Moto":
+          print("Buscando motociclistas disponibles...");
+          getNearbyMotorcyclers();
+          break;
+        case "Encomienda":
+          print("Buscando servicios de encomienda...");
+          // Lógica para buscar servicios de encomienda
+          break;
+        default:
+          print("Tipo de servicio no reconocido: $tipoDeServicio");
       }
+    } else {
+      print("Tipo de servicio no definido en SharedPreferences");
     }
-
   }
+
+
 
   void getNearbyDrivers() {
     Stream<List<DocumentSnapshot>> stream = _geofireProvider.getNearbyDrivers(
@@ -537,6 +548,7 @@ class TravelInfoController{
     _streamSubscription?.cancel();
     _clientInfoSuscription.cancel();
     _streamStatusSuscription.cancel();
+    clearTipoServicio();
 
   }
 

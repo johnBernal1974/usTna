@@ -1,8 +1,10 @@
 import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:tayrona_usuario/providers/client_provider.dart';
+import 'package:tayrona_usuario/src/models/client.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../colors/colors.dart';
 import '../../commons_widgets/headers/header_text/header_text.dart';
@@ -19,6 +21,7 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage> {
 
   late MyAuthProvider _authProvider;
   late ClientProvider _clientProvider;
+  Client? client;
 
   @override
   void initState() {
@@ -136,10 +139,17 @@ class _VerifyingIdentityPageState extends State<VerifyingIdentityPage> {
   }
 
   void updateVerifyStatus() async {
-    Map<String, dynamic> data = {
-      'Verificacion_Status': 'Procesando'
-    };
-    await _clientProvider.update(data, _authProvider.getUser()!.uid);
+    String? verificationStatus;
+    client = await _clientProvider.getById(_authProvider.getUser()!.uid);
+    verificationStatus = client?.verificacionStatus;
+    print("ESTATUS AL INGRESAL A LA PAGINA******************************$verificationStatus");
+    if(verificationStatus != "corregida"){
+      Map<String, dynamic> data = {
+        'Verificacion_Status': 'Procesando'
+      };
+      await _clientProvider.update(data, _authProvider.getUser()!.uid);
+      print("ESTATUS LUEGO DE LA VALIDACION******************************$verificationStatus");
+    }
   }
 
 

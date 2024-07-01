@@ -81,21 +81,32 @@ class MyAuthProvider{
             return;
           }
 
+
           // Verificar las fotos en el orden especificado
           String? fotoPerfilVerificada = await clientProvider.verificarFotoPerfil();
+
           if (fotoPerfilVerificada == "" || fotoPerfilVerificada == "rechazada") {
             Navigator.pushNamedAndRemoveUntil(context, 'take_foto_perfil', (route) => false);
             return;
           }
 
+
           String? fotoCedulaDelantera = await clientProvider.verificarFotoCedulaDelantera();
-          if (fotoCedulaDelantera == "" || fotoCedulaDelantera == "rechazada") {
+          String? fotoCedulaTrasera = await clientProvider.verificarFotoCedulaTrasera();
+
+          //// esta linea es para verificar si puede ver el valor de un servicio antes de pedirle la cedula
+          if (fotoCedulaDelantera == "" || fotoCedulaTrasera == "") {
+            Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+            return;
+          }
+
+          if (fotoCedulaDelantera == "rechazada") {
             Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_delantera_page', (route) => false);
             return;
           }
 
-          String? fotoCedulaTrasera = await clientProvider.verificarFotoCedulaTrasera();
-          if (fotoCedulaTrasera == "" || fotoCedulaTrasera == "rechazada") {
+
+          if (fotoCedulaTrasera == "rechazada") {
             Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
             return;
           }

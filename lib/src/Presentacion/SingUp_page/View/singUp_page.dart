@@ -17,7 +17,7 @@ class SignUpPage extends StatefulWidget {
 
 
 class _SingUpPageState extends State<SignUpPage> {
-  String _dropdownValueTipoDocumento= "Cédula de ciudadanía";
+  String _dropdownValueTipoDocumento= "Cédula de Ciudadanía";
   final SignUpController _controller = SignUpController();
   final TextEditingController _date = TextEditingController();
   late FocusNode _nextFieldFocusNode = FocusNode();
