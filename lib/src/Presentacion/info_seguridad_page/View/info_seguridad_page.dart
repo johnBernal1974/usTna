@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tayrona_usuario/providers/auth_provider.dart';
-import 'package:tayrona_usuario/src/colors/colors.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../colors/colors.dart';
 
 class InfoSeguridadPage extends StatefulWidget {
   const InfoSeguridadPage({super.key});
@@ -18,14 +18,31 @@ class _InfoSeguridadPageState extends State<InfoSeguridadPage> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          alignment: Alignment.center,
           margin: const EdgeInsets.all(25),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  alignment: Alignment.centerRight,
+                  child: const Column(
+                    children: [
+                      Image(
+                        height: 30.0,
+                        width: double.infinity,
+                        image: AssetImage('assets/images/imagen_zafiro_azul.png'),
+                      ),
+                      Image(
+                        height: 50.0,
+                        width: double.infinity,
+                        image: AssetImage('assets/images/logo_zafiro-pequeño.png'),
+                      ),
+                    ],
+                  ),
+                ),
+
                 _tituloSeguridad(),
-                const SizedBox(height: 25),
                 Stack(
                   alignment: Alignment.topRight,
                   children: [
@@ -34,33 +51,22 @@ class _InfoSeguridadPageState extends State<InfoSeguridadPage> {
                       padding: const EdgeInsets.all(5),
                       height: 105,
                       width: 175,
-                      decoration: BoxDecoration(
-                          color: blanco,
-                          borderRadius: const BorderRadius.all(Radius.circular(12),
-                          ),
-                          border: Border.all(color: gris, width: 1),
-                          boxShadow: [BoxShadow(
-                              color: Colors.grey[850]!.withOpacity(0.29),
-                              offset: const Offset(-5, 5),
-                              blurRadius: 10,
-                              spreadRadius: 2
-                          )],
-                          image: const DecorationImage(
-                              image: AssetImage('assets/images/documento_frente.png'),
-                              fit: BoxFit.cover
-                          )
+                      // Eliminamos la decoración
+                      child: const Image(
+                        image: AssetImage('assets/images/documento_frente.png'),
+                        fit: BoxFit.cover,
                       ),
                     ),
-
                     const Image(
-                        height: 59.0,
-                        width: 59.0,
-                        image: AssetImage('assets/images/check_verde.png'),
-                        ),
+                      height: 59.0,
+                      width: 59.0,
+                      image: AssetImage('assets/images/check_verde.png'),
+                    ),
                   ],
                 ),
 
-                const SizedBox(height: 30),
+
+                const SizedBox(height: 20),
                 _textoContenido(),
                 const SizedBox(height: 20),
                 _textoContenido2(),
@@ -77,9 +83,10 @@ class _InfoSeguridadPageState extends State<InfoSeguridadPage> {
   }
 
   Widget _tituloSeguridad(){
-    return const Text('¡Velamos por tu seguridad!', style: TextStyle(
+    return const Text('¡Velamos por tu\nseguridad!', style: TextStyle(
       fontSize: 18,
-      fontWeight: FontWeight.bold,
+      fontWeight: FontWeight.w900,
+      height: 1
     ),
     textAlign: TextAlign.center,);
   }

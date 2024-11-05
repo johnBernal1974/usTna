@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../../../../providers/conectivity_service.dart';
 import '../../../colors/colors.dart';
 import '../../commons_widgets/Buttons/rounded_button.dart';
 import '../../commons_widgets/headers/header_text/header_text.dart';
@@ -18,6 +19,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
 
   late LoginController _controller;
+  final ConnectionService connectionService = ConnectionService();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -31,21 +34,22 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: blancoCards,
       key: _controller.key,
       appBar: AppBar(
         backgroundColor: blancoCards,
-        iconTheme: const IconThemeData(color: primary, size: 30),
+        iconTheme: const IconThemeData(color: negro, size: 30),
         title: headerText(
             text: "Login",
             fontSize: 26,
             fontWeight: FontWeight.w700,
-            color: primary
+            color: negro
         ),
         actions: const <Widget>[
           Image(
               height: 40.0,
               width: 100.0,
-              image: AssetImage('assets/images/logo_tayrona_solo.png'))
+              image: AssetImage('assets/images/logo_zafiro-pequeño.png'))
 
         ],
       ),
@@ -72,15 +76,34 @@ class _LoginPageState extends State<LoginPage> {
             ),
 
             Container(
-              margin: const EdgeInsets.only(top: 30,left: 25, right: 25),
-              child: createElevatedButton(context: context,
-                  labelButton: 'Ingresar',
-                  labelFontSize: 20,
-                  color: primary,
-                  icon: null,
-                  func: () {
+              margin: const EdgeInsets.only(top: 30, left: 25, right: 25),
+              child: createElevatedButton(
+                context: context,
+                labelButton: 'Ingresar',
+                labelFontSize: 20,
+                color: primary,
+                icon: null,
+                func: () async {
+                  setState(() {
+                    _isLoading = true; // Iniciar el estado de carga
+                  });
+
+                  // Verificar la conexión a Internet antes de ejecutar la acción
+                  bool hasConnection = await connectionService.hasInternetConnection();
+
+                  setState(() {
+                    _isLoading = false; // Terminar el estado de carga
+                  });
+
+                  if (hasConnection) {
+                    // Si hay conexión, ejecuta la acción de login
                     _controller.login();
-                  }),
+                  } else {
+                    // Si no hay conexión, muestra un AlertDialog
+                    alertSinInternet();
+                  }
+                },
+              ),
             ),
 
             Center(
@@ -89,15 +112,26 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     margin: const EdgeInsets.only(top: 35.0),
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, 'forgot_password');
+                      onTap: () async {
+                        // Verificar conexión a Internet antes de ejecutar la acción
+                        bool hasConnection = await connectionService.hasInternetConnection();
+
+                        if (hasConnection) {
+                          // Si hay conexión, ejecuta la acción de ir a "Olvidaste tu contraseña"
+                          _controller.goToForgotPassword();
+                        } else {
+                          // Si no hay conexión, muestra un AlertDialog
+                          alertSinInternet();
+                        }
                       },
                       child: const Text(
-                          '¿Olvidaste tu contraseña?', style: TextStyle(
+                        '¿Olvidaste tu contraseña?',
+                        style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w600,
-                          fontSize: 17.0
-                      )),
+                          fontSize: 17.0,
+                        ),
+                      ),
                     ),
                   ),
 
@@ -118,8 +152,16 @@ class _LoginPageState extends State<LoginPage> {
                               fontSize: 15.0
                           )),
                           GestureDetector(
-                            onTap: () {
-                              _controller.goToRegisterPage();
+                            onTap: ()  async{
+                              // Verificar conexión a Internet antes de ejecutar la acción
+                              bool hasConnection = await connectionService.hasInternetConnection();
+                              if (hasConnection) {
+                                // Si hay conexión, ejecuta la acción para ir a la selección de tipo de usuario
+                                _controller.goToRegisterPage();
+                              } else {
+                                // Si no hay conexión, muestra un AlertDialog
+                                alertSinInternet();
+                              }
                             },
                             child: const Text(
                                 '  Registrarse aquí', style: TextStyle(
@@ -140,6 +182,26 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
       );
+  }
+
+  Future alertSinInternet (){
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sin Internet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),),
+          content: const Text('Por favor, verifica tu conexión e inténtalo nuevamente.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _emailImput() {

@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:tayrona_usuario/providers/storage_provider.dart';
-import 'package:tayrona_usuario/src/models/client.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/client_provider.dart';
+import '../../../../providers/storage_provider.dart';
+import 'package:zafiro_cliente/src/models/client.dart';
 
 class TakeFotoController {
 
@@ -15,7 +16,6 @@ class TakeFotoController {
   late StorageProvider _storageProvider = StorageProvider();
   late MyAuthProvider _authProvider;
   late ClientProvider _clientProvider;
-  Client? _client;
   XFile? pickedFile;
   File? imageFile;
   late Function refresh;
@@ -28,41 +28,36 @@ class TakeFotoController {
     _authProvider = MyAuthProvider();
     _clientProvider = ClientProvider();
     _storageProvider = StorageProvider();
+    return null;
   }
 
   void guardarFotoPerfil() async {
     showSimpleProgressDialog(context, 'Cargando imagen...');
-
     if (pickedFile != null) {
       try {
         // Comprimir la imagen antes de subirla a Firestore
         File compressedImage = await compressImage(File(pickedFile!.path));
-
         // Convertir el archivo comprimido a un objeto PickedFile
         PickedFile compressedPickedFile = PickedFile(compressedImage.path);
-
         // Subir la imagen comprimida a Firestore
         TaskSnapshot snapshot = await _storageProvider.uploadProfilePhoto(
             compressedPickedFile, _authProvider.getUser()!.uid);
         String imageUrl = await snapshot.ref.getDownloadURL();
-
         // Actualizar la URL de la imagen en Firestore
         Map<String, dynamic> data = {'image': imageUrl};
         await _clientProvider.update(data, _authProvider.getUser()!.uid);
         updateFotoPerfilATrue();
+        if(context.mounted){
+          closeSimpleProgressDialog(context);
+        }
 
-        print('URL de la foto: $imageUrl');
-        // Ocultar el progreso una vez que se haya cargado en Firebase
-        closeSimpleProgressDialog(context);
-        goToMapClient();
+        verificarRutaPagina();
       } catch (e) {
-        print('Error al cargar la imagen: $e');
-        // Asegúrate de cerrar el progreso en caso de que ocurra un error
-        closeSimpleProgressDialog(context);
+        if(context.mounted){
+          closeSimpleProgressDialog(context);
+        }
       }
     } else {
-      print('No se ha seleccionado ninguna foto');
-      // Asegúrate de cerrar el progreso en caso de que no se seleccione ninguna foto
       closeSimpleProgressDialog(context);
     }
   }
@@ -94,16 +89,16 @@ class TakeFotoController {
         imageFile.path,
         quality: 75, // Calidad de compresión
       )) as List<int>;
-
       // Guardar la imagen comprimida en un nuevo archivo
       File compressedFile = File('${imageFile.parent.path}/${DateTime
           .now()
           .millisecondsSinceEpoch}.jpg');
       await compressedFile.writeAsBytes(compressedImage);
-
       return compressedFile;
     } catch (e) {
-      print('Error al comprimir la imagen: $e');
+      if (kDebugMode) {
+        print('Error al comprimir la imagen: $e');
+      }
       // En caso de error, devuelve la imagen original sin comprimir
       return imageFile;
     }
@@ -114,8 +109,27 @@ class TakeFotoController {
   }
 
 
-  void goToMapClient() {
-    Navigator.pushNamed(context, 'map_client');
+  void verificarRutaPagina() async {
+    String userId = _authProvider.getUser()!.uid;
+    Client? client = await _clientProvider.getById(userId);
+    String? fotoCedulaDelantera = client?.the13FotoCedulaDelantera;
+    String? fotoCedulaTrasera = client?.the14FotoCedulaTrasera;
+    if (client != null) {
+      if(fotoCedulaDelantera!.isNotEmpty && fotoCedulaTrasera!.isNotEmpty){
+        goToVerificandoIdentidad();
+      }
+      else{
+        goToMapClient();
+      }
+    }
+  }
+
+  void goToVerificandoIdentidad(){
+    Navigator.pushNamedAndRemoveUntil(context, "verifying_identity", (route) => false);
+  }
+
+  void goToMapClient(){
+    Navigator.pushNamedAndRemoveUntil(context, "map_client", (route) => false);
   }
 
 
@@ -125,17 +139,17 @@ class TakeFotoController {
       pickedFile = image;
       refresh();
     } else {
-      print('No se tomó ninguna foto');
+      if (kDebugMode) {
+        print('No se tomó ninguna foto');
+      }
     }
   }
 
   void updateFotoPerfilATrue() async {
     String userId = _authProvider.getUser()!.uid;
-
-    Client? _client = await _clientProvider.getById(userId);
-    if (_client != null) {
-      bool isFotoTomada = _client.fotoPerfilTomada;
-
+    Client? client = await _clientProvider.getById(userId);
+    if (client != null) {
+      bool isFotoTomada = client.fotoPerfilTomada;
       Map<String, dynamic> data;
       if (!isFotoTomada) {
         // Si la foto no está tomada, actualiza el estado y marca la foto como tomada

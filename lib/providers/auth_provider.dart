@@ -1,12 +1,14 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:tayrona_usuario/src/models/client.dart';
+import 'package:zafiro_cliente/src/models/client.dart';
 import '../src/colors/colors.dart';
 import 'client_provider.dart';
 
 class MyAuthProvider{
   late FirebaseAuth _firebaseAuth;
+  final ClientProvider _clientProvider = ClientProvider();
 
 
   MyAuthProvider(){
@@ -21,9 +23,10 @@ class MyAuthProvider{
     try{
       await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
     }on FirebaseAuthException catch (error){
-      print('ErrorxxxdelLogin: ${error.code} \n ${error.message}');
       errorMessage = _getErrorMessage(error.code);
-      showSnackbar(context, errorMessage ?? "");
+      if(context.mounted){
+        showSnackbar(context, errorMessage);
+      }
       return false;
     }
     return true;
@@ -64,103 +67,116 @@ class MyAuthProvider{
     if (context != null) {
       FirebaseAuth.instance.authStateChanges().listen((User? user) async {
         if (user != null) {
-          print('El usuario está logueado');
+          // Verificar si el correo electrónico está verificado
+          if (!user.emailVerified) {
+            // Si no está verificado, redirigir a la página de verificación de correo electrónico
+            Navigator.pushNamedAndRemoveUntil(context, 'email_verification_page', (route) => false);
+            return;
+          }
 
           ClientProvider clientProvider = ClientProvider();
           String? verificationStatus = await clientProvider.getVerificationStatus();
 
           // Verificar si el estado de verificación está en "Procesando"
           if (verificationStatus == 'Procesando' || verificationStatus == 'corregida') {
-            Navigator.pushNamedAndRemoveUntil(context, 'verifying_identity', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'verifying_identity', (route) => false);
+            }
             return;
           }
 
-          // Verifica el estado de verificación
           if (verificationStatus == 'bloqueado') {
-            Navigator.pushNamedAndRemoveUntil(context, 'bloqueo_page', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'bloqueo_page', (route) => false);
+            }
             return;
           }
-
 
           // Verificar las fotos en el orden especificado
-          String? fotoPerfilVerificada = await clientProvider.verificarFotoPerfil();
+          String? fotoPerfilUsuario = await clientProvider.verificarFotoPerfil();
 
-          if (fotoPerfilVerificada == "" || fotoPerfilVerificada == "rechazada") {
-            Navigator.pushNamedAndRemoveUntil(context, 'take_foto_perfil', (route) => false);
+          if (fotoPerfilUsuario == "" || fotoPerfilUsuario == "rechazada") {
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'take_foto_perfil', (route) => false);            }
+
             return;
           }
-
 
           String? fotoCedulaDelantera = await clientProvider.verificarFotoCedulaDelantera();
           String? fotoCedulaTrasera = await clientProvider.verificarFotoCedulaTrasera();
 
-          //// esta linea es para verificar si puede ver el valor de un servicio antes de pedirle la cedula
+          // Esta línea es para verificar si puede ver el valor de un servicio antes de pedirle la cédula
           if (fotoCedulaDelantera == "" || fotoCedulaTrasera == "") {
-            Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+            }
             return;
           }
 
           if (fotoCedulaDelantera == "rechazada") {
-            Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_delantera_page', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_delantera_page', (route) => false);
+            }
             return;
           }
 
-
           if (fotoCedulaTrasera == "rechazada") {
-            Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
+            }
             return;
           }
 
           // Si todas las fotos están verificadas, verificar si el usuario está viajando
           String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
           Client? client = await clientProvider.getById(userId);
-
           if (client != null) {
             bool isTraveling = client.the00isTraveling;
             if (isTraveling) {
-              Navigator.pushNamedAndRemoveUntil(context, 'travel_map_page', (route) => false);
+              if(context.mounted){
+                Navigator.pushNamedAndRemoveUntil(context, 'travel_map_page', (route) => false);
+              }
             } else {
-              // Si no se encuentra un viaje actual, redirigir a 'map_client'
-              print('No hay un viaje actual para este conductor');
-              Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+              if(context.mounted){
+                Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+              }
             }
           } else {
             // Si no se encuentra el cliente, redirigir a 'map_client'
-            Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'map_client', (route) => false);
+            }
           }
         } else {
           Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
-          print('El usuario NO está logueado');
         }
       });
     }
   }
 
-
   void verificarFotosCedulaDelantera(BuildContext? context) {
     if (context != null) {
       FirebaseAuth.instance.authStateChanges().listen((User? user) async {
         if (user != null) {
-          print('El usuario está logueado');
           ClientProvider clientProvider = ClientProvider();
-          // Verificar si las fotos ya han sido cargadas
-
-          String? fotoCedulaDelanteraVerificada = await clientProvider.verificarFotoCedulaDelantera();
-
-          // Verificar si las fotos están verificadas
-          if (fotoCedulaDelanteraVerificada == "" || fotoCedulaDelanteraVerificada == "rechazada") {
-            Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_delantera_page', (route) => false);
+          String? fotoCedulaDelantera = await clientProvider.verificarFotoCedulaDelantera();
+          if (fotoCedulaDelantera == "" || fotoCedulaDelantera == "rechazada") {
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_delantera_page', (route) => false);
+            }
           } else {
-            Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
+            }
           }
         } else {
           Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
-          print('El usuario NO está logueado');
         }
       });
     } else {
-      print('El contexto es nulo');
-      // Manejar el caso en que el contexto sea nulo, por ejemplo, mostrando un mensaje de error.
+      if (kDebugMode) {
+        print('El contexto es nulo');
+      }
     }
   }
 
@@ -168,41 +184,46 @@ class MyAuthProvider{
     if (context != null) {
       FirebaseAuth.instance.authStateChanges().listen((User? user) async {
         if (user != null) {
-          print('El usuario está logueado');
           ClientProvider clientProvider = ClientProvider();
-          String? fotoCedulaTraseraVerificada = await clientProvider.verificarFotoCedulaTrasera();
-          if (fotoCedulaTraseraVerificada == "" || fotoCedulaTraseraVerificada == "rechazada") {
-            Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
+          String? fotoCedulaTrasera = await clientProvider.verificarFotoCedulaTrasera();
+          if (fotoCedulaTrasera == "" || fotoCedulaTrasera == "rechazada") {
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'take_photo_cedula_trasera_page', (route) => false);
+            }
           } else {
-            Navigator.pushNamedAndRemoveUntil(context, 'verifying_identity', (route) => false);
+            if(context.mounted){
+              Navigator.pushNamedAndRemoveUntil(context, 'verifying_identity', (route) => false);
+            }
           }
         } else {
           Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
-          print('El usuario NO está logueado');
         }
       });
     } else {
-      print('El contexto es nulo');
-      // Manejar el caso en que el contexto sea nulo, por ejemplo, mostrando un mensaje de error.
+      if (kDebugMode) {
+        print('El contexto es nulo');
+      }
     }
   }
 
   Future<bool> signUp(String email, String password) async {
-    String? errorMessage;
-
     try {
       await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-    } on FirebaseAuthException catch (error) {
-      errorMessage = error.code;
+    } on FirebaseAuthException {
       // Lanzar el error para manejarlo en SignUpController
       rethrow;
     }
     return true;
   }
 
-  Future<Future<List<void>>> signOut() async {
-    return Future.wait([_firebaseAuth.signOut()]);
-
+  Future<void> signOut() async {
+    String? userId = _firebaseAuth.currentUser?.uid;
+    if (userId != null) {
+      // Actualizar el estado de inicio de sesión a false en Firestore
+      await _clientProvider.updateLoginStatus(userId, false);
+    }
+    // Cerrar sesión en Firebase Auth
+    await _firebaseAuth.signOut();
   }
 
 }

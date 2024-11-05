@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:tayrona_usuario/src/api/environmment.dart';
 
 import '../src/models/directions.dart';
 
@@ -9,12 +9,11 @@ import '../src/models/directions.dart';
 class GoogleProvider {
 
   Future<dynamic> getGoogleMapsDirections (double fromLat, double fromLng, double toLat, double toLng) async {
-    print('SE ESTA EJECUTANDO');
-
+    String apiKey = dotenv.env['API_KEY'] ?? '';
     Uri uri = Uri.https(
         'maps.googleapis.com',
         'maps/api/directions/json', {
-      'key': Environment.API_KEY_MAPS,
+      'key': apiKey,
       'origin': '$fromLat,$fromLng',
       'destination': '$toLat,$toLng',
       'traffic_model' : 'best_guess',
@@ -23,7 +22,7 @@ class GoogleProvider {
       'transit_routing_preferences': 'less_driving'
     }
     );
-    print('URL: $uri');
+
     final response = await http.get(uri);
     final decodedData = json.decode(response.body);
     final leg = Direction.fromJsonMap(decodedData['routes'][0]['legs'][0]);

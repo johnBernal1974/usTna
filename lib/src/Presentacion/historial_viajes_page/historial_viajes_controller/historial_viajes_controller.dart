@@ -1,9 +1,9 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:tayrona_usuario/providers/auth_provider.dart';
-import 'package:tayrona_usuario/providers/travel_history_provider.dart';
 
+import '../../../../providers/auth_provider.dart';
+import '../../../../providers/travel_history_provider.dart';
 import '../../../models/travelHistory.dart';
 
 class HistorialViajesController{

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tayrona_usuario/src/colors/colors.dart';
+
+import '../../src/colors/colors.dart';
 
 class Snackbar {
 

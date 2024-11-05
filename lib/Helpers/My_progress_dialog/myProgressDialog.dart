@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:progress_dialog_null_safe/progress_dialog_null_safe.dart';
-import 'package:tayrona_usuario/src/colors/colors.dart';
+
+import '../../src/colors/colors.dart';
 
 class MyProgressDialog {
   static ProgressDialog? createProgressDialog (BuildContext context, String text){

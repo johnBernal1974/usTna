@@ -41,7 +41,7 @@ Widget _createElevatedButtonWithIcon(
   return ElevatedButton(
       onPressed: func,
       style: ElevatedButton.styleFrom(
-          shape: shape, primary: color, elevation: 0.5),
+          shape: shape, backgroundColor: color, elevation: 0.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -77,13 +77,11 @@ Widget _createElevatedButtonNotIcon(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            child: TextView(
-                texto: labelButton,
-                color: labelColor,
-                fontSize: labelFontSize,
-                fontWeight: FontWeight.bold),
-          )
+          TextView(
+              texto: labelButton,
+              color: labelColor,
+              fontSize: labelFontSize,
+              fontWeight: FontWeight.bold)
         ],
       ));
 }

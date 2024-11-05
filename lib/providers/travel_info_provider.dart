@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tayrona_usuario/src/models/travel_info.dart';
+
+import '../src/models/travel_info.dart';
 
 class TravelInfoProvider {
 
@@ -23,11 +24,7 @@ class TravelInfoProvider {
       errorMessage = error.hashCode as String;
     }
 
-    if(errorMessage != null){
-      return Future.error(errorMessage);
-    }
-
-    return Future.value();
+    return Future.error(errorMessage);
   }
 
   Future<void> update(Map<String, dynamic> data, String id) {

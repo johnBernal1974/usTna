@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide ModalBottomSheetRoute;
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:tayrona_usuario/providers/auth_provider.dart';
-import 'package:tayrona_usuario/providers/client_provider.dart';
-import 'package:tayrona_usuario/providers/push_notifications_provider.dart';
-import 'package:tayrona_usuario/src/models/client.dart';
-import 'package:tayrona_usuario/utils/utilsMap.dart';
 import 'package:location/location.dart' as location;
 import '../../../../Helpers/SnackBar/snackbar.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../../providers/client_provider.dart';
+import '../../../../providers/conectivity_service.dart';
 import '../../../../providers/geofire_provider.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:zafiro_cliente/src/models/client.dart';
+import 'package:zafiro_cliente/utils/utilsMap.dart';
+import '../../../../providers/push_notifications_provider.dart';
 
 class ClientMapController {
   late BuildContext context;
@@ -49,6 +52,10 @@ class ClientMapController {
   LatLng? tolatlng;
   LatLng? currentLocation;
 
+  final ConnectionService _connectionService = ConnectionService();
+  bool isConnected = false; //**para validar el estado de conexion a internet
+  StreamSubscription<ConnectivityResult>? _connectivitySubscription;  // Suscripción para escuchar cambios en conectividad
+
   // Inicializar _positionStream
   void startPositionStream() {
     _positionStream = Geolocator.getPositionStream().listen((Position position) {
@@ -63,9 +70,16 @@ class ClientMapController {
     _authProvider = MyAuthProvider();
     _clientProvider = ClientProvider();
     _pushNotificationsProvider = PushNotificationsProvider();
-    markerClient = await createMarkerImageFromAssets('assets/images/posicion_usuario_negra.png');
-    markerDriver = await createMarkerImageFromAssets('assets/images/vehiculo_disponible7.png');
+    markerClient = await createMarkerImageFromAssets('assets/images/marker_inicio.png');
+    markerDriver = await createMarkerImageFromAssets('assets/images/marcador_driver_zafiro.png');
+
     checkGPS();
+
+    await checkConnectionAndShowSnackbar();
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      checkConnectionAndShowSnackbar();
+      refresh();
+    });
     // Obtener la posición actual y establecerla como posición inicial
     _position = await Geolocator.getCurrentPosition();
     if (_position != null) {
@@ -77,6 +91,14 @@ class ClientMapController {
     saveToken();
     getClientInfo();
   }
+
+  // Método para verificar la conexión a Internet y mostrar el Snackbar si no hay conexión
+  Future<void> checkConnectionAndShowSnackbar() async {
+    await _connectionService.checkConnectionAndShowCard(context, () {
+      // Callback para manejar la reconexión a Internet
+      refresh();
+    });
+  }
   void _initializePositionStream() {
     // Inicializa tu _positionStream aquí
     _positionStream = Geolocator.getPositionStream().listen((Position position) {
@@ -85,24 +107,21 @@ class ClientMapController {
   }
 
   Future<Null> setLocationdraggableInfo() async {
-    if (initialPosition != null) {
-      double lat = initialPosition.target.latitude;
-      double lng = initialPosition.target.longitude;
-      List<Placemark> address = await placemarkFromCoordinates(lat, lng);
+    double lat = initialPosition.target.latitude;
+    double lng = initialPosition.target.longitude;
+    List<Placemark> address = await placemarkFromCoordinates(lat, lng);
 
-      if (address.isNotEmpty) {
-        String? direction = address[0].thoroughfare;
-        String? street = address[0].subThoroughfare;
-        String? city = address[0].locality;
-        String? department = address[0].administrativeArea;
-        String? country = address[0].country;
+    if (address.isNotEmpty) {
+      String? direction = address[0].thoroughfare;
+      String? street = address[0].subThoroughfare;
+      String? city = address[0].locality;
+      String? department = address[0].administrativeArea;
 
-        to = '$direction #$street, $city, $department';
-        tolatlng = LatLng(lat, lng);
-        refresh();
-      }
+      to = '$direction #$street, $city, $department';
+      tolatlng = LatLng(lat, lng);
+      refresh();
     }
-  }
+    }
 
   void saveToken() {
     final user = _authProvider.getUser();
@@ -122,7 +141,6 @@ class ClientMapController {
         String? street = address[0].subThoroughfare;
         String? city = address[0].locality;
         String? department = address[0].administrativeArea;
-        String? country = address[0].country;
         from = '$direction #$street, $city, $department';
         fromlatlng = LatLng(lat, lng);
         refresh();
@@ -150,8 +168,6 @@ class ClientMapController {
       _geofireProvider.getNearbyDrivers(_position!.latitude, _position!.longitude, 1);
 
       _driversSubscription = stream.listen((List<DocumentSnapshot> documentList) {
-        print('Número de documentos: ${documentList.length}');
-
         // Limpiar marcadores de conductores existentes
         List<MarkerId> driverMarkersToRemove = [];
 
@@ -161,9 +177,9 @@ class ClientMapController {
           }
         }
 
-        driverMarkersToRemove.forEach((m) {
+        for (var m in driverMarkersToRemove) {
           markers.remove(m);
-        });
+        }
 
         // Mantener el marcador del cliente
         if (_position != null) {
@@ -178,17 +194,13 @@ class ClientMapController {
         }
 
         for (DocumentSnapshot d in documentList) {
-          print('Document ID: ${d.id}, Data: ${d.data()}');
           Map<String, dynamic> positionData = d.get('position');
-          if (positionData != null && positionData.containsKey('geopoint')) {
+          if (positionData.containsKey('geopoint')) {
             GeoPoint geoPoint = positionData['geopoint'];
             double latitude = geoPoint.latitude;
             double longitude = geoPoint.longitude;
 
-            // Ahora puedes usar latitude y longitude como necesites
-            print('Latitude: $latitude, Longitude: $longitude');
-
-            addMarker(
+            addMarkerDriver(
               d.id,
               latitude,
               longitude,
@@ -197,7 +209,9 @@ class ClientMapController {
               markerDriver,
             );
           } else {
-            print('GeoPoint is null or not found.');
+            if (kDebugMode) {
+              print('GeoPoint is null or not found.');
+            }
           }
         }
 
@@ -212,6 +226,7 @@ class ClientMapController {
     _positionStream.cancel();
     _clientInfoSuscription.cancel();
     _driversSubscription?.cancel();
+    _connectivitySubscription?.cancel();
   }
 
   void onMapCreated(GoogleMapController controller){
@@ -237,7 +252,9 @@ class ClientMapController {
         getNearbyDrivers();
       }
     } catch (error) {
-      print('Error en la localizacion: $error');
+      if (kDebugMode) {
+        print('Error en la localizacion: $error');
+      }
     }
   }
 
@@ -250,15 +267,12 @@ class ClientMapController {
   void checkGPS() async{
     bool islocationEnabled = await Geolocator.isLocationServiceEnabled();
     if(islocationEnabled){
-      print('GPS activado');
       updateLocation();
     }
     else{
-      print('GPS desactivado');
       bool locationGPS = await location.Location().requestService();
       if(locationGPS){
         updateLocation();
-        print(' el usuario activo el GPS');
       }
     }
   }
@@ -294,7 +308,7 @@ class ClientMapController {
         'tolatlng': tolatlng,
       });
     } else {
-      if (context != null && key.currentState != null) {
+      if (key.currentState != null) {
         Snackbar.showSnackbar(context, key, 'Debes seleccionar el lugar de origen y destino');
       }
     }
@@ -365,7 +379,30 @@ class ClientMapController {
       zIndex: 2,
       flat: true,
       anchor: const Offset(0.5, 0.5),
-      rotation: _position?.heading ?? 0,
+      // rotation: _position?.heading ?? 0,
+    );
+
+    markers[id] = marker;
+  }
+  void addMarkerDriver(
+      String markerId,
+      double lat,
+      double lng,
+      String title,
+      String content,
+      BitmapDescriptor iconMarker
+      ) {
+    MarkerId id = MarkerId(markerId);
+    Marker marker = Marker(
+      markerId: id,
+      icon: iconMarker,
+      position: LatLng(lat, lng),
+      infoWindow: InfoWindow(title: title, snippet: content),
+      draggable: false,
+      zIndex: 2,
+      flat: true,
+      anchor: const Offset(0.5, 1.0),
+      // rotation: _position?.heading ?? 0,
     );
 
     markers[id] = marker;

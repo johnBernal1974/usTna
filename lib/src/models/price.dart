@@ -33,6 +33,8 @@ class Price {
   double theValorMinRegular;
   double theValorMinTurismo;
   double theDinamica;
+  String theLinkDescargaClient;
+  String theLinkDescargaDriver;
 
 
   Price({
@@ -61,6 +63,8 @@ class Price {
     required this.theValorMinRegular,
     required this.theValorMinTurismo,
     required this.theDinamica,
+    required this.theLinkDescargaClient,
+    required this.theLinkDescargaDriver,
 
 
   });
@@ -90,6 +94,9 @@ class Price {
     theValorMinRegular: json["valor_min_regular"]?.toDouble() ?? 0.0,
     theValorMinTurismo: json["valor_min_turismo"]?.toDouble() ?? 0.0,
     theDinamica: json["dinamica"]?.toDouble() ?? 0.0,
+    theLinkDescargaClient: json["link_descarga_client"]?? '',
+    theLinkDescargaDriver: json["link_descarga_driver"]?? '',
+
   );
 
   Map<String, dynamic> toJson() => {
@@ -117,5 +124,7 @@ class Price {
     "valor_min_regular": theValorMinRegular,
     "valor_min_turismo": theValorMinTurismo,
     "dinamica": theDinamica,
+    "link_descarga_client": theLinkDescargaClient,
+    "link_descarga_driver": theLinkDescargaDriver,
   };
 }

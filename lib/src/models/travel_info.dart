@@ -8,7 +8,7 @@ class TravelInfo {
   String id;
   String status;
   String idDriver;
-  String from; // Corregido el nombre del campo
+  String from;
   String to;
   String idTravelHistory;
   double fromLat;
@@ -18,11 +18,13 @@ class TravelInfo {
   double tarifa;
   double tarifaDescuento;
   double tarifaInicial;
-  double distancia; // Corregido el nombre del campo
+  double distancia;
   double tiempoViaje;
   String horaSolicitudViaje;
   String horaInicioViaje;
   String horaFinalizacionViaje;
+  String tipoServicio;
+  String apuntes;
 
   TravelInfo({
     required this.id,
@@ -43,6 +45,8 @@ class TravelInfo {
     required this.horaSolicitudViaje,
     required this.horaInicioViaje,
     required this.horaFinalizacionViaje,
+    required this.tipoServicio,
+    required this.apuntes,
   });
 
   factory TravelInfo.fromJson(Map<String, dynamic> json) => TravelInfo(
@@ -64,6 +68,8 @@ class TravelInfo {
     horaSolicitudViaje: json["horaSolicitudViaje"],
     horaInicioViaje: json["horaInicioViaje"],
     horaFinalizacionViaje: json["horaFinalizacionViaje"],
+    tipoServicio: json["tipoServicio"],
+    apuntes: json["apuntes"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -85,6 +91,8 @@ class TravelInfo {
     "horaSolicitudViaje": horaSolicitudViaje,
     "horaInicioViaje": horaInicioViaje,
     "horaFinalizacionViaje": horaFinalizacionViaje,
+    "tipoServicio": tipoServicio,
+    "apuntes": apuntes,
   };
 }
 

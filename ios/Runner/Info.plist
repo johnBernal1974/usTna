@@ -9,11 +9,11 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>Necesito acceder al micrófono del dispositivo</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Se requiere activar tu ubicación para que Tay-rona pueda funcionar apropiadamente</string>
+    <string>Se requiere activar tu ubicación para que Zafiro pueda funcionar apropiadamente</string>
 	<key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Tayrona Cliente</string>
+	<string>Zafiro Cliente</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Tay-rona Cliente</string>
+	<string>ZafiroCliente</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

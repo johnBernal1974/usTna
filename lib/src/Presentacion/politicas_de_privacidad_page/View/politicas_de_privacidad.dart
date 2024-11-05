@@ -14,11 +14,12 @@ class _PoliticasDePrivacidadPageState extends State<PoliticasDePrivacidadPage> {
   double _progress = 0;
   late InAppWebViewController inAppWebViewController;
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: blancoCards,
       appBar: AppBar(
+        backgroundColor: blancoCards,
         iconTheme: const IconThemeData(color: negro, size: 30),
         title: headerText(
             text: "Privacidad",
@@ -31,7 +32,7 @@ class _PoliticasDePrivacidadPageState extends State<PoliticasDePrivacidadPage> {
         children: [
           InAppWebView(
             initialUrlRequest: URLRequest(
-              url: Uri.parse('https://tay-rona.com/politicas-de-privacidad/'),
+              url: Uri.parse('https://mizafiro.com/politicas-de-privacidad/'),
             ),
             onWebViewCreated: (InAppWebViewController controller){
               inAppWebViewController = controller;
@@ -40,15 +41,12 @@ class _PoliticasDePrivacidadPageState extends State<PoliticasDePrivacidadPage> {
               setState(() {
                 _progress = progress / 100;
               });
-
             },
           ),
-          _progress < 1 ? Container(
-            child: LinearProgressIndicator(
-              backgroundColor: grisMedio,
-              minHeight: 8,
-              value: _progress,
-            ),
+          _progress < 1 ? LinearProgressIndicator(
+            backgroundColor: primary,
+            minHeight: 8,
+            value: _progress,
           ): const SizedBox()
         ],
       ),

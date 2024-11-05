@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tayrona_usuario/src/Presentacion/travel_info_page/travel_info_Controller/travel_info_Controller.dart';
-import 'package:tayrona_usuario/src/colors/colors.dart';
+import 'package:zafiro_cliente/src/Presentacion/travel_info_page/travel_info_Controller/travel_info_Controller.dart';
 import '../../../Helpers/Validators/FormValidators.dart';
+import '../../../providers/conectivity_service.dart';
+import '../../colors/colors.dart';
 import '../commons_widgets/headers/header_text/header_text.dart';
 
 
@@ -19,7 +21,7 @@ class ClientTravelInfoPage extends StatefulWidget {
 
 class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
-  final TravelInfoController _controller = TravelInfoController();
+  final TravelInfoController _controller = Get.put(TravelInfoController());
   late bool isVisibleCheckCarro = true;
   late bool isVisibleCheckMoto = false;
   late bool isVisibleCheckEncomienda = false;
@@ -33,9 +35,11 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
   GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
   String? tipoServicio ;
   late bool isVisibleCajonApuntesAlConductor = false;
-  TextEditingController _con = TextEditingController();
+  final TextEditingController _con = TextEditingController();
   String? apuntesAlConductor;
   String? tipoServicioSeleccionado;
+  final ConnectionService connectionService = ConnectionService();
+
 
 
   @override
@@ -55,48 +59,55 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
     _controller.dispose();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context);
+    ScreenUtil.init(context, designSize: const Size(375, 812));
     tarifa = _controller.total?.toInt() ?? 0;
     formattedTarifa= FormatUtils.formatCurrency(tarifa!);
-    String from = _controller.from ?? "";
-    String to = _controller.to ?? "";
-    return Scaffold(
-      backgroundColor: grisMapa,
-      key: _controller.key,
-      body: Stack(
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: _googleMapsWidget(),
+    String from = _controller.from;
+    String to = _controller.to;
+    return WillPopScope(
+      onWillPop: () async {
+        await _controller.deleteTravelInfo();
+        return true;
+      },
+      child: Scaffold(
+          backgroundColor: grisMapa,
+          key: _controller.key,
+          body: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topCenter,
+                child: _googleMapsWidget(),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child:  _cardInfoViaje(from, to),
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: _buttonVolverAtras(),
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: _tarjetaInfoEncomienda(),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: _tarjetaSolicitandoConductor(),
+              ),
+
+              Align(
+                alignment: Alignment.bottomCenter,
+                child:  _apuntesAlConductor(),
+              )
+            ],
+
           ),
 
-          Align(
-            alignment: Alignment.bottomCenter,
-            child:  _cardInfoViaje(from, to),
-          ),
-          // Align(
-          //   alignment: Alignment.topLeft,
-          //   child: _buttonVolverAtras(),
-          // ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: _tarjetaInfoEncomienda(),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _tarjetaSolicitandoConductor(),
-          ),
-
-          Align(
-            alignment: Alignment.bottomCenter,
-            child:  _apuntesAlConductor(),
-          )
-        ],
-
-      ),
-
+        ),
     );
   }
 
@@ -133,7 +144,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Alerta'),
+          title: Text('Alerta', style: TextStyle(fontSize: 18.r, fontWeight: FontWeight.bold)),
           content: const Text('Para continuar debes aceptar los Términos y Condiciones'),
           actions: <Widget>[
             TextButton(
@@ -149,7 +160,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
   }
 
   Widget _googleMapsWidget() {
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.50,
       //margin: const EdgeInsets.only(bottom: 420),
       child: GoogleMap(
@@ -172,14 +183,14 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
           Navigator.of(context).pop(); // Agrega esta línea para manejar el evento de retroceso
         },
         child: Container(
-          margin: const EdgeInsets.only(right: 10,  left: 10),
+          margin: EdgeInsets.only(right: 10.r,  left: 10.r),
           child: Card(
             shape: const CircleBorder(),
-            surfaceTintColor: amarilloClaro,
+            surfaceTintColor: blancoCards,
             elevation: 2,
             child: Container(
-                padding: const EdgeInsets.all(5),
-                child: const Icon(Icons.arrow_back, color: negroLetras, size:20,)),
+                padding: EdgeInsets.all(5.r),
+                child: Icon(Icons.arrow_back, color: negroLetras, size:20.r,)),
 
           ),
         ),
@@ -191,37 +202,37 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.50,
       width: double.infinity,
-      decoration: const BoxDecoration(
-          color: blanco,
-          borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+          color: blancoCards,
+          borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30)
           ),
           boxShadow: [BoxShadow(
             color: gris,
-            offset: Offset(1,1),
-            blurRadius: 10,
+            offset: const Offset(1,1),
+            blurRadius: 10.r,
           )]
       ),
       child: Column(
         children: [
           Container(
-            margin: const EdgeInsets.only(top: 15, left: 25, right: 25),
+            margin: EdgeInsets.only(top: 15.r, left: 25.r, right: 25.r),
             child: Row(
               children: [
-                Image.asset('assets/images/posicion_usuario_negra.png', height: 15, width: 15),
-                const SizedBox(width: 5),
-               Expanded(child: Text(from, maxLines: 1))
+                Image.asset('assets/images/marker_inicio.png', height: 15.r, width: 15.r),
+                SizedBox(width: 5.r),
+               Expanded(child: Text(from, style: TextStyle(fontSize: 12.r, color: negro), maxLines: 1))
               ],
             ),
           ),
           Container(
-            margin: const EdgeInsets.only(left: 25, right: 25),
+            margin: EdgeInsets.only(left: 25.r, right: 25.r),
             child: Row(
               children: [
-                Image.asset('assets/images/posicion_destino.png', height: 15, width: 15),
-                const SizedBox(width: 5),
-                Expanded(child: Text(to, style: const TextStyle( fontWeight: FontWeight.bold), maxLines: 1))
+                Image.asset('assets/images/marker_destino.png', height: 15.r, width: 15.r),
+                SizedBox(width: 5.r),
+                Expanded(child: Text(to, style: TextStyle( fontWeight: FontWeight.w900, fontSize: 12.r, color: negro), maxLines: 1))
               ],
             ),
           ),
@@ -238,24 +249,24 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                   children: [
                     Column(
                       children: [
-                        headerText(text:'Distancia', fontSize: 10, color: negro, fontWeight: FontWeight.w900),
-                        headerText(text: _controller?.km ?? '', fontSize: 10, color: gris, fontWeight: FontWeight.w500),
+                        headerText(text:'Distancia', fontSize: 10.r, color: negro, fontWeight: FontWeight.w500),
+                        headerText(text: _controller.km ?? '', fontSize: 14.r, color: negro, fontWeight: FontWeight.w900),
                       ],
                     ),
 
                     Column(
                       children: [
-                        headerText(text:'Duración', fontSize: 10, color: negro, fontWeight: FontWeight.w900),
-                        headerText(text: _controller?.min ?? '', fontSize: 10, color: gris, fontWeight: FontWeight.w500),
+                        headerText(text:'Duración', fontSize: 10.r, color: negro, fontWeight: FontWeight.w500),
+                        headerText(text: _controller.min ?? '', fontSize: 14.r, color: negro, fontWeight: FontWeight.w900),
                       ],
                     ),
                   ],
                 ),
 
                 Container(
-                    width: 200,
-                    padding: const EdgeInsets.all(10),
-                    child: headerText(text: formattedTarifa, fontSize: 26, color: negro, fontWeight: FontWeight.w900)
+                    width: 200.r,
+                    padding: EdgeInsets.all(10.r),
+                    child: headerText(text: formattedTarifa, fontSize: 26.r, color: negro, fontWeight: FontWeight.w900)
                 ),
               ],
             ),
@@ -266,9 +277,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
             children: [
               GestureDetector(
                 onTap: (){
-                  //tipoServicio = 'Transporte';
                   _controller.guardarTipoServicio("Transporte");
-                  print('Tipo de servicio seleccionado en el boton Trnasporte**************************************$tipoServicio');
                   if (mounted) {
                     setState(() {
                       isVisibleCheckCarro = true;
@@ -282,15 +291,15 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                     Stack(
                       children: [
                         Container(
-                          margin: const EdgeInsets.all(15),
-                          padding: EdgeInsets.all(ScreenUtil().setSp(5)),
-                          height: !isVisibleCheckCarro ? ScreenUtil().setSp(45) : ScreenUtil().setSp(65),
-                          width: !isVisibleCheckCarro ? ScreenUtil().setSp(75) : ScreenUtil().setSp(115),
+                          margin: EdgeInsets.all(15.r),
+                          padding: EdgeInsets.all(ScreenUtil().setSp(5.r)),
+                          height: !isVisibleCheckCarro ? ScreenUtil().setSp(45.r) : ScreenUtil().setSp(65.r),
+                          width: !isVisibleCheckCarro ? ScreenUtil().setSp(75.r) : ScreenUtil().setSp(115.r),
                           decoration: BoxDecoration(
                             color: blanco,
                             borderRadius: const BorderRadius.all(Radius.circular(12),
                             ),
-                              border:  !isVisibleCheckCarro? Border.all(color: blancoCards, width: 0): Border.all(color: gris, width: 2) ,
+                              border:  !isVisibleCheckCarro? Border.all(color: blancoCards, width: 0): Border.all(color: primary, width: 3) ,
 
                             boxShadow: [BoxShadow(
                               color: Colors.grey[850]!.withOpacity(0.29),
@@ -306,10 +315,10 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                         ),
                         Visibility(
                           visible: isVisibleCheckCarro,
-                          child: const Image(
-                              height: 45.0,
-                              width: 45.0,
-                              image: AssetImage('assets/images/check_verde.png')),
+                          child: Image(
+                              height: 45.r,
+                              width: 45.r,
+                              image: const AssetImage('assets/images/check_verde.png')),
                         ),
                       ],
                     ),
@@ -323,9 +332,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                     children: [
                       GestureDetector(
                         onTap: (){
-                          //tipoServicio = 'Moto';
                           _controller.guardarTipoServicio('Moto');
-                          print('ipo de servicio seleccionado en el boton moto***********************************$tipoServicio');
                           if (mounted) {
                             setState(() {
                               isVisibleCheckCarro = false;
@@ -336,15 +343,15 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
                         },
                         child: Container(
-                          margin: const EdgeInsets.all(15),
-                          padding: EdgeInsets.all(ScreenUtil().setSp(5)),
-                          height: !isVisibleCheckMoto?  ScreenUtil().setSp(45) : ScreenUtil().setSp(65),
-                          width:  !isVisibleCheckMoto?  ScreenUtil().setSp(75) : ScreenUtil().setSp(115),
+                          margin: EdgeInsets.all(15.r),
+                          padding: EdgeInsets.all(ScreenUtil().setSp(5.r)),
+                          height: !isVisibleCheckMoto?  ScreenUtil().setSp(45.r) : ScreenUtil().setSp(65.r),
+                          width:  !isVisibleCheckMoto?  ScreenUtil().setSp(75.r) : ScreenUtil().setSp(115.r),
                           decoration: BoxDecoration(
                               color: blanco,
                               borderRadius: const BorderRadius.all(Radius.circular(12),
                               ),
-                              border:  !isVisibleCheckMoto? Border.all(color: blancoCards, width: 0): Border.all(color: gris, width: 2) ,
+                              border:  !isVisibleCheckMoto? Border.all(color: blancoCards, width: 0): Border.all(color: primary, width: 3) ,
                               boxShadow: [BoxShadow(
                                   color: Colors.grey[850]!.withOpacity(0.29),
                                   offset: const Offset(-5, 5),
@@ -360,10 +367,10 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                       ),
                       Visibility(
                         visible: isVisibleCheckMoto,
-                        child: const Image(
-                            height: 45.0,
-                            width: 45.0,
-                            image: AssetImage('assets/images/check_verde.png')),
+                        child: Image(
+                            height: 45.r,
+                            width: 45.r,
+                            image: const AssetImage('assets/images/check_verde.png')),
                       ),
                     ],
                   ),
@@ -376,9 +383,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                     children: [
                       GestureDetector(
                         onTap: (){
-                          //tipoServicio = 'Encomienda';
                           _controller.guardarTipoServicio('Encomienda');
-                          print('ipo de servicio seleccionado en el boton Trnasporte**************************$tipoServicio');
                           if (mounted) {
                             setState(() {
                               isVisibleCheckCarro = false;
@@ -391,15 +396,15 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                           }
                         },
                         child: Container(
-                          margin: const EdgeInsets.all(15),
-                          padding: EdgeInsets.all(ScreenUtil().setSp(5)),
-                          height: !isVisibleCheckEncomienda? ScreenUtil().setSp(45) : ScreenUtil().setSp(65),
-                          width:  !isVisibleCheckEncomienda?  ScreenUtil().setSp(75) : ScreenUtil().setSp(115),
+                          margin: EdgeInsets.all(15.r),
+                          padding: EdgeInsets.all(ScreenUtil().setSp(5.r)),
+                          height: !isVisibleCheckEncomienda? ScreenUtil().setSp(45.r) : ScreenUtil().setSp(65.r),
+                          width:  !isVisibleCheckEncomienda?  ScreenUtil().setSp(75.r) : ScreenUtil().setSp(115.r),
                           decoration: BoxDecoration(
                               color: blanco,
                               borderRadius: const BorderRadius.all(Radius.circular(12)
                               ),
-                              border:  !isVisibleCheckEncomienda? Border.all(color: blancoCards, width: 0): Border.all(color: gris, width: 2) ,
+                              border:  !isVisibleCheckEncomienda? Border.all(color: blancoCards, width: 0): Border.all(color: primary, width: 3) ,
                               boxShadow: [BoxShadow(
                                   color: Colors.grey[850]!.withOpacity(0.29),
                                   offset: const Offset(-5, 5),
@@ -415,10 +420,10 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                       ),
                       Visibility(
                         visible: isVisibleCheckEncomienda,
-                        child: const Image(
-                            height: 45.0,
-                            width: 45.0,
-                            image: AssetImage('assets/images/check_verde.png')),
+                        child: Image(
+                            height: 45.r,
+                            width: 45.r,
+                            image: const AssetImage('assets/images/check_verde.png')),
                       ),
                     ],
                   ),
@@ -430,14 +435,14 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
           _textapuntes (),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(5),
-            margin: const EdgeInsets.only(top: 15, left: 10, right: 10),
+            padding: EdgeInsets.all(5.r),
+            margin: EdgeInsets.only(top: 15.r, left: 10.r, right: 10.r),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
-              color: blancoCards, // Cambia el color de fondo del contenedor a blanco
+              color: blanco, // Cambia el color de fondo del contenedor a blanco
             ),
-            child: Text(_con.text.isNotEmpty ? _con.text : 'Sin apuntes', style: const TextStyle(
-             fontSize: 12
+            child: Text(_con.text.isNotEmpty ? _con.text : 'Sin apuntes', style: TextStyle(
+             fontSize: 16.r, color: Colors.redAccent, fontWeight: FontWeight.w900
             ),
             maxLines: 2),
           ),
@@ -448,23 +453,52 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
           ),
           Container(
             width: double.infinity,
-            height: 48,
-            margin: const EdgeInsets.only(left: 25, right: 25, bottom: 10),
+            height: 48.r,
+            margin: EdgeInsets.only(left: 25.r, right: 25.r, bottom: 30.r),
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(backgroundColor: primary),
-              onPressed: () {
-                verificarCedulaInicial();
+              onPressed: () async {
+                bool hasConnection = await connectionService.hasInternetConnection();
+
+                if (hasConnection) {
+                  // Si hay conexión, ejecuta la acción de ir a "Olvidaste tu contraseña"
+                  verificarCedulaInicial();
+                } else {
+                  // Si no hay conexión, muestra un AlertDialog
+                  alertSinInternet();
+                }
+
 
               },
-              icon: const Icon(Icons.check_circle, size: 30, color: blanco,),
-              label: const Text(
+              icon: Icon(Icons.check_circle, size: 30.r, color: blanco,),
+              label: Text(
                 'Confirmar Viaje',
-                style: TextStyle(color: blanco, fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(color: blanco, fontSize: 20.r, fontWeight: FontWeight.bold),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future alertSinInternet (){
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sin Internet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),),
+          content: const Text('Por favor, verifica tu conexión e inténtalo nuevamente.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -478,12 +512,12 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
         }
       },
       child: Container(
-        margin: const EdgeInsets.only(right: 10),
-        child: const Row(
+        margin: EdgeInsets.only(right: 10.r),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(Icons.double_arrow, size: 18, color: negro),
-            Text('Apuntes al conductor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            Icon(Icons.double_arrow, size: 20.r, color: negro),
+            Text('Apuntes al conductor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.r, color: negro )),
           ],
         ),
       ),
@@ -510,12 +544,12 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
               )]
           ),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20.r),
             child: Column(
               children: [
-                const Text('Escribe al conductor alguna información importante para tu viaje.', style: TextStyle(fontSize: 14, color: gris, fontWeight: FontWeight.w400), maxLines: 2,
+                Text('Escribe al conductor alguna información importante para tu viaje.', style: TextStyle(fontSize: 16.r, color: negro, fontWeight: FontWeight.w900), maxLines: 2,
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30.r),
                 TextField(
                   maxLength: 80,
                   autofocus: true,
@@ -526,7 +560,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                   decoration: const InputDecoration(
                     // Personaliza la apariencia del borde del TextField
                     enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue), // Cambia el color de la línea inferior a azul cuando el TextField no está enfocado
+                      borderSide: BorderSide(color: primary), // Cambia el color de la línea inferior a azul cuando el TextField no está enfocado
                     ),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: primary), // Cambia el color de la línea inferior a verde cuando el TextField está enfocado
@@ -534,13 +568,13 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                   ),
                 ),
 
-                const SizedBox(height: 35),
+                SizedBox(height: 35.r),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: turquesa,
+                          backgroundColor: primary,
                           elevation: 6// Color del botón
                       ),
                       onPressed:(){
@@ -552,7 +586,13 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                         _obtenerApuntesAlConductor();
                         _controller.guardarApuntesConductor(apuntesAlConductor!);
                       },
-                      child: const Text('Guardar', style: TextStyle(color: blanco, fontWeight: FontWeight.bold, fontSize: 14)),
+                      child: Row(
+                        children: [
+                          Text('Guardar', style: TextStyle(color: blanco, fontWeight: FontWeight.bold, fontSize: 14.r)),
+                          SizedBox(width: 10.r),
+                          Icon(Icons.touch_app_outlined, size: 16.r, color: blanco,)
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -566,19 +606,14 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
   void _obtenerApuntesAlConductor(){
     apuntesAlConductor = _con.text;
-    print('*********apuntes al conductor******************$apuntesAlConductor');
   }
 
   void verificarCedulaInicial() {
     String? fotoDelantera = _controller.client?.the13FotoCedulaDelantera;
-    print('*********************************** foto delantera $fotoDelantera');
     String? fotoTrasera = _controller.client?.the14FotoCedulaTrasera;
-    print('*********************************** foto trasera $fotoTrasera');
     if (fotoDelantera == "" || fotoTrasera == "") {
-      print('*********************************** es false');
       Navigator.pushNamed(context, 'info_seguridad_page');
     } else {
-      print('*********************************** entro en true');
       if (mounted) { // Verifica si el widget está montado
         setState(() {
           isVisibleTarjetaSolicitandoConductor = true;
@@ -587,8 +622,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
       _startSearch();
       _controller.createTravelInfo();
-      _controller.seleccionarBusquedaSegunTipoServicio();
-      //_controller.getNearbyDrivers();
+      _controller.getNearbyDrivers();
     }
   }
 
@@ -602,10 +636,10 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
         color: Colors.black.withOpacity(0.8),
         width: double.infinity,
         height: double.maxFinite,
-        padding: const EdgeInsets.all(25),
+        padding: EdgeInsets.all(25.r),
         child:  Container(
-          margin: const EdgeInsets.only(top: 50),
-          padding: const EdgeInsets.all(20),
+          margin: EdgeInsets.only(top: 50.r),
+          padding: EdgeInsets.all(20.r),
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(30)),
             color: blanco,
@@ -615,9 +649,9 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text('Encomiendas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: negro)),
-                const SizedBox(height: 30),
-                const Text('Nuestro servicio de encomiendas está diseñado para proporcionar un envío rápido '
+                Text('Encomiendas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22.r, color: negro)),
+                SizedBox(height: 30.r),
+                Text('Nuestro servicio de encomiendas está diseñado para proporcionar un envío rápido '
                     'y eficiente de artículos pequeños, tales como cajas, maletas, paquetes y documentos. '
                     'Nos aseguramos de que el volumen de los objetos no supere la capacidad del maletero del '
                     'vehículo y que el peso no exceda los 90 kilos. Queremos garantizar la entrega segura y oportuna '
@@ -625,17 +659,17 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                     'con cuidado y responsabilidad.',
                     textAlign: TextAlign.justify,
                     style: TextStyle(
-                  color: gris, fontWeight: FontWeight.w400, fontSize: 12,)
+                  color: gris, fontWeight: FontWeight.w400, fontSize: 12.r,)
                 ),
-                const SizedBox(height: 10),
-                const Text(' Es importante destacar que no está permitido el envío de dinero, joyas, títulos valores '
+                SizedBox(height: 10.r),
+                Text(' Es importante destacar que no está permitido el envío de dinero, joyas, títulos valores '
                     'u objetos similares. Además, queda prohibido el transporte de sustancias químicas corrosivas o '
                     'con cualquier característica que pueda poner en riesgo la integridad del conductor o del envío.',
                     textAlign: TextAlign.justify,
                     style: TextStyle(
-                      color: gris, fontWeight: FontWeight.w400, fontSize: 12,)
+                      color: gris, fontWeight: FontWeight.w400, fontSize: 12.r,)
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.r),
               Row(
                 children: [
                   Checkbox(
@@ -660,12 +694,12 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                       },
                       child: GestureDetector(
                         onTap: (){},
-                        child: const Text(
+                        child: Text(
                           'Acepto los Términos y Condiciones',
                           style: TextStyle(
                             decoration: TextDecoration.underline,
                             color: primary,
-                            fontSize: 12,
+                            fontSize: 12.r,
                             decorationColor: primary
                           ),
                           maxLines: 2,
@@ -675,7 +709,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                   ),
                 ],
               ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20.r),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: primary),
                   onPressed: () async {
@@ -709,7 +743,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
       visible: isVisibleTarjetaSolicitandoConductor,
       child: Container(
         height: double.infinity,
-        padding: const EdgeInsets.only(top: 50, left: 30, right: 30),
+        padding: EdgeInsets.only(top: 50.r, left: 30.r, right: 30.r),
         decoration: const BoxDecoration(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(26),
@@ -721,35 +755,35 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
 
-            const SizedBox(height: 10),
+            SizedBox(height: 10.r),
             _getSearchingImage(),
             Text(
               _getSearchingText(), // Usar función para obtener el texto según tipoServicio
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: negro),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.r, color: negro),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10.r),
             Stack(
               alignment: Alignment.center,
               children: [
                 if (_isSearching)
-                  const SpinKitRipple(
+                  SpinKitRipple(
                     color: primary,
-                    size: 200.0,
+                    size: 200.r,
                   ),
                 Image.asset(
-                  'assets/images/logo_tayrona_solo.png',
-                  width: 30,
-                  height: 30,
+                  'assets/images/logo_zafiro-pequeño.png',
+                  width: 60.r,
+                  height: 60.r,
                 ),
 
               ],
             ),
-            const Text(
+            Text(
               'Esperando respuesta...',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: negro),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.r, color: negro),
             ),
-            const SizedBox(height: 50),
+            SizedBox(height: 50.r),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               onPressed: () {
@@ -762,23 +796,25 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                 _controller.deleteTravelInfo();
               },
               icon: const Icon(Icons.cancel, color: blanco),
-              label: const Text('Cancelar el Viaje', style: TextStyle(color: blanco)),
+              label: Text('Cancelar el Viaje', style: TextStyle(color: blanco, fontSize: 16.r)),
             ),
+
           ],
         ),
       ),
     );
   }
 
+
   // Función para obtener el texto de búsqueda según tipoServicio
   String _getSearchingText() {
-    switch (_controller.tipoServicioSeleccionado) {
+    switch (_controller.tipoServicio) {
       case "Transporte":
-        return 'Buscando AUTOMOBILES disponibles';
+        return 'Buscando Automoviles disponibles';
       case "Moto":
-        return 'Buscando MOTOCICLISTAS disponibles';
+        return 'Buscando Motociclistas disponibles';
       case "Encomienda":
-        return 'Buscando quién entregue tu ENCOMIENDA';
+        return 'Buscando quién entregue tu Encomienda';
       default:
         return 'Buscando conductores disponibles';
     }
@@ -786,15 +822,15 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
   Widget _getSearchingImage() {
     String imagePath;
-    switch (_controller.tipoServicioSeleccionado) {
+    switch (_controller.tipoServicio) {
       case "Transporte":
-        imagePath = 'assets/images/tarjeta_carro.png';
+        imagePath = 'assets/images/carro_plateado.png';
         break;
       case "Moto":
-        imagePath = 'assets/images/tarjeta_moto.png';
+        imagePath = 'assets/images/moto_conductor.png';
         break;
       case "Encomienda":
-        imagePath = 'assets/images/tarjeta_encomienda.png';
+        imagePath = 'assets/images/encomiendas.png';
         break;
       default:
         imagePath = 'assets/images/check_verde.png'; // Imagen por defecto si no coincide ninguno
@@ -803,8 +839,8 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
     return Image.asset(
       imagePath,
-      width: 130, // Ajusta el ancho de la imagen según sea necesario
-      height: 130, // Ajusta la altura de la imagen según sea necesario
+      width: 180.r, // Ajusta el ancho de la imagen según sea necesario
+      height: 110.r, // Ajusta la altura de la imagen según sea necesario
     );
   }
   void _startSearch() {

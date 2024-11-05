@@ -2,7 +2,8 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:tayrona_usuario/src/models/client.dart';
+import 'package:flutter/foundation.dart';
+import 'package:zafiro_cliente/src/models/client.dart';
 
 class ClientProvider{
 
@@ -21,13 +22,9 @@ class ClientProvider{
       errorMessage = error.hashCode as String;
     }
 
-    if(errorMessage != null){
-      return Future.error(errorMessage);
-    }
-
-    return Future.value();
-
+    return Future.error(errorMessage);
   }
+
   Stream<DocumentSnapshot> getByIdStream(String id) {
     return _ref.doc(id).snapshots(includeMetadataChanges: true);
   }
@@ -60,7 +57,9 @@ class ClientProvider{
       }
       return null;
     } catch (error) {
-      print('Error al obtener el estado de verificación: $error');
+      if (kDebugMode) {
+        print('Error al obtener el estado de verificación: $error');
+      }
       return null;
     }
   }
@@ -76,7 +75,6 @@ class ClientProvider{
           // Verificar si la foto de perfil está verificada o no
           Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
           String fotoPerfil = userData['15_Foto_perfil_usuario'];
-          print('foto perfil*************************** $fotoPerfil');
           return fotoPerfil;
         } else {
           // Si no se encuentra el documento del usuario, la foto de perfil no está verificada
@@ -87,7 +85,9 @@ class ClientProvider{
         return "false";
       }
     } catch (error) {
-      print('Error al verificar la foto de perfil: $error');
+      if (kDebugMode) {
+        print('Error al verificar la foto de perfil: $error');
+      }
       return "false";
     }
   }
@@ -103,7 +103,6 @@ class ClientProvider{
           // Verificar si la foto de perfil está verificada o no
           Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
           String fotoCedulaDelantera = userData['13_Foto_cedula_delantera'];
-          print('foto cedulaDelantera*************************** $fotoCedulaDelantera');
           return fotoCedulaDelantera;
         } else {
           // Si no se encuentra el documento del usuario, la foto de perfil no está verificada
@@ -114,7 +113,9 @@ class ClientProvider{
         return "false";
       }
     } catch (error) {
-      print('Error al verificar la foto cedula delantera: $error');
+      if (kDebugMode) {
+        print('Error al verificar la foto cedula delantera: $error');
+      }
       return "false";
     }
   }
@@ -130,7 +131,6 @@ class ClientProvider{
           // Verificar si la foto de perfil está verificada o no
           Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
           String fotoCedulaTrasera = userData['14_Foto_cedula_trasera'];
-          print('foto cedulaTrasera*************************** $fotoCedulaTrasera');
           return fotoCedulaTrasera;
         } else {
           // Si no se encuentra el documento del usuario, la foto de perfil no está verificada
@@ -141,9 +141,26 @@ class ClientProvider{
         return "false";
       }
     } catch (error) {
-      print('Error al verificar la foto cedula trasera: $error');
+      if (kDebugMode) {
+        print('Error al verificar la foto cedula trasera: $error');
+      }
       return "false";
     }
   }
+
+  // Nuevos métodos para gestionar el estado de inicio de sesión
+  Future<bool> checkIfUserIsLoggedIn(String userId) async {
+    DocumentSnapshot snapshot = await _ref.doc(userId).get();
+    if (snapshot.exists) {
+      Map<String, dynamic>? userData = snapshot.data() as Map<String, dynamic>?; // Cambiado
+      return userData?['isLoggedIn'] ?? false; // Cambiado
+    }
+    return false; // Usuario no encontrado
+  }
+
+  Future<void> updateLoginStatus(String userId, bool isLoggedIn) async {
+    await _ref.doc(userId).update({'isLoggedIn': isLoggedIn});
+  }
+
 
 }

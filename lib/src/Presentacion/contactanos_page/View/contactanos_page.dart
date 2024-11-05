@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../colors/colors.dart';
 import '../../commons_widgets/headers/header_text/header_text.dart';
@@ -34,44 +36,38 @@ class _ContactanosPageState extends State<ContactanosPage> {
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: const Size(375, 812));
     return  Scaffold(
+      backgroundColor: blancoCards,
       appBar: AppBar(
         backgroundColor: blancoCards,
-        iconTheme: const IconThemeData(color: negro, size: 26),
+        iconTheme: IconThemeData(color: negro, size: 26.r),
         title: headerText(
             text: "Contáctanos",
-            fontSize: 20,
+            fontSize: 20.r,
             fontWeight: FontWeight.w600,
             color: negro
         ),
-        actions: const <Widget>[
-          Image(
-              height: 40.0,
-              width: 60.0,
-              image: AssetImage('assets/images/imagen_mujer_call_us.png'))
-
-        ],
       ),
       body: SingleChildScrollView(
         child: Container(
-          margin: const EdgeInsets.only(top: 25),
+          margin: EdgeInsets.only(top: 25.r),
             alignment: Alignment.center,
             child: Column(
               children: [
-                headerText(
-                    text: '¿En que te podemos ayudar?',
-                    fontWeight: FontWeight.w500,
-                    fontSize: 20,
-                  color: negroLetras
+                Container(
+                  alignment: Alignment.center,
+                  child: Text('¿En qué te\npodemos ayudar?', style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 26.r,
+                    color: negro,
+                    height: 0.8
+                  ),
+                  textAlign: TextAlign.center,),
                 ),
 
-                const Image(
-                    height: 130.0,
-                    width: 130.0,
-                    image: AssetImage('assets/images/imagen_mujer_call_us.png')),
-
                 Container(
-                  margin: const EdgeInsets.only(left: 50, right: 50, top: 25,bottom: 30),
+                  margin:EdgeInsets.only(left: 50.r, right: 50.r, top: 25.r,bottom: 30.r),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -79,21 +75,22 @@ class _ContactanosPageState extends State<ContactanosPage> {
                         children: [
                           IconButton(
                               onPressed: (){
-                                makePhoneCall('3108101723');
+                                makePhoneCall(_controller.whatsappAtencionCliente ?? "");
                               },
                               icon: const Icon(Icons.phone),
-                          iconSize: 30,),
+                          iconSize: 30.r,),
 
-                          headerText(
-                              text: "Llámanos",
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: negroLetras
+                          GestureDetector(
+                            onTap: () => makePhoneCall(_controller.whatsappAtencionCliente ?? ""),
+                            child: headerText(
+                                text: "Llamar",
+                                fontSize: 12.r,
+                                fontWeight: FontWeight.w600,
+                                color: negro
+                            ),
                           ),
                         ],
                       ),
-
-
                       Column(
                         children: [
                           IconButton(
@@ -101,15 +98,20 @@ class _ContactanosPageState extends State<ContactanosPage> {
                               _openWhatsApp(context);
                             },
                             icon: Image.asset('assets/images/icono_whatsapp.png',
-                            width: 30,
-                            height: 30),
+                            width: 30.r,
+                            height: 30.r),
                            ),
 
-                          headerText(
-                              text: "Chatea",
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: negroLetras
+                          GestureDetector(
+                            onTap: () {
+                              _openWhatsApp(context);
+                            },
+                            child: headerText(
+                                text: "Chatear",
+                                fontSize: 12.r,
+                                fontWeight: FontWeight.w600,
+                                color: negro
+                            ),
                           ),
                         ],
                       )
@@ -117,36 +119,29 @@ class _ContactanosPageState extends State<ContactanosPage> {
                   ),
 
                 ),
-
                 const Divider(height: 2, color: grisMedio,endIndent: 25, indent: 25),
-
-                Container(
-                  margin: const EdgeInsets.only(top: 25),
-                  child: headerText(
-                    text: "Canales de comunicación\n24 horas",
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: negroLetras),
-                )
+                const SizedBox(height: 50),
+                Image.asset('assets/images/imagen_zafiro_azul.png', width: 40.r, height: 40.r),
+                Image.asset('assets/images/logo_zafiro-pequeño.png', width: 200.r, height: 70.r),
               ],
-
             )),
       ),
     );
-
   }
 
   void _openWhatsApp(BuildContext context) async {
-    const phoneNumber = '+573108101723';
+    String? phoneNumber = _controller.whatsappAtencionCliente;
     String? name = _controller.client?.the01Nombres.toString();
-    String message = 'Hola Tay-rona, mi nombre es $name y requiero de su asistencia.';
+    String message = 'Hola Zafiro, mi nombre es $name y requiero de su asistencia.';
 
-    final whatsappLink = Uri.parse('whatsapp://send?phone=$phoneNumber&text=${Uri.encodeQueryComponent(message)}');
+    final whatsappLink = Uri.parse('whatsapp://send?phone=+57$phoneNumber&text=${Uri.encodeQueryComponent(message)}');
 
     try {
       await launchUrl(whatsappLink);
     } catch (e) {
-      showNoWhatsAppInstalledDialog(context);
+      if(context.mounted){
+        showNoWhatsAppInstalledDialog(context);
+      }
     }
   }
 
@@ -155,14 +150,16 @@ class _ContactanosPageState extends State<ContactanosPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('WhatsApp no instalado', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          content: const Text('No tienes WhatsApp en tu dispositivo. Instálalo e intenta de nuevo'),
+          title: Text('WhatsApp no instalado', style: TextStyle(fontSize: 18.r, fontWeight: FontWeight.w800)),
+          content: Text('No tienes WhatsApp en tu dispositivo. Instálalo e intenta de nuevo', style: TextStyle(
+            fontSize: 14.r
+          ),),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Aceptar', style: TextStyle(color: negro, fontWeight: FontWeight.w900, fontSize: 14)),
+              child: Text('Aceptar', style: TextStyle(color: negro, fontWeight: FontWeight.w900, fontSize: 14.r)),
             ),
           ],
         );
@@ -170,14 +167,15 @@ class _ContactanosPageState extends State<ContactanosPage> {
     );
   }
 
-
   void makePhoneCall(String phoneNumber) async {
     final phoneCallUrl = 'tel:$phoneNumber';
 
     try {
       await launch(phoneCallUrl);
     } catch (e) {
-      print('No se pudo realizar la llamada: $e');
+      if (kDebugMode) {
+        print('No se pudo realizar la llamada: $e');
+      }
     }
   }
 }

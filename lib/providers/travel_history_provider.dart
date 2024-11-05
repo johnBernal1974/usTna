@@ -1,9 +1,9 @@
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tayrona_usuario/providers/driver_provider.dart';
-import 'package:tayrona_usuario/src/models/driver.dart';
+import '../src/models/driver.dart';
 import '../src/models/travelHistory.dart';
+import 'driver_provider.dart';
 
 class TravelHistoryProvider{
 
@@ -20,17 +20,13 @@ class TravelHistoryProvider{
     try{
       String id = _ref.doc().id;
       travelHistory.id = id;
-      await _ref.doc(travelHistory.id).set(travelHistory?.toJson());// almacenamos el id
+      await _ref.doc(travelHistory.id).set(travelHistory.toJson());// almacenamos el id
       return id;
     }on FirebaseFirestore catch(error){
       errorMessage = error.hashCode as String;
     }
 
-    if(errorMessage != null){
-      return Future.error(errorMessage);
-    }
-
-    return Future.value();
+    return Future.error(errorMessage);
 
   }
 
@@ -79,7 +75,6 @@ class TravelHistoryProvider{
     for(TravelHistory travelHistory in travelHistoryList) {
       DriverProvider driverProvider = DriverProvider();
       Driver? driver =  await driverProvider.getById(travelHistory.idDriver);
-      print('idDriver**************$driver');
       travelHistory.nameDriver = driver?.the01Nombres ?? '';
       travelHistory.apellidosDriver = driver?.the02Apellidos ?? '';
       travelHistory.placa = driver?.the18Placa ?? '';

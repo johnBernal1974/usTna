@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:tayrona_usuario/src/Presentacion/take_foto_perfil/take_foto_perfil_controller/take_foto_perfil_controller.dart';
+import 'package:zafiro_cliente/src/Presentacion/take_foto_perfil/take_foto_perfil_controller/take_foto_perfil_controller.dart';
+import '../../../providers/conectivity_service.dart';
 import '../../colors/colors.dart';
 import '../commons_widgets/headers/header_text/header_text.dart';
 
@@ -16,8 +17,9 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
 
   late TakeFotoController _controller = TakeFotoController();
   File? imageFile;
-  final double _radiusWithoutImage = 60; // Radio del CircleAvatar cuando no hay imagen
-  final double _radiusWithImage = 100;   // Radio del CircleAvatar cuando se ha seleccionado una imagen
+  final double _radiusWithoutImage = 60;
+  final double _radiusWithImage = 100;
+  final ConnectionService connectionService = ConnectionService();
 
   @override
   void initState() {
@@ -40,10 +42,8 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
 
   void refresh(){
     setState(() {
-
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +61,7 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
           Image(
               height: 40.0,
               width: 100.0,
-              image: AssetImage('assets/images/logo_tayrona_solo.png'))
+              image: AssetImage('assets/images/logo_zafiro-pequeño.png'))
         ],
       ),
       body: Container(
@@ -71,13 +71,13 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _cajonFotoPerfil(),
-              const SizedBox(height: 45),
+              const SizedBox(height: 15),
               headerText(text: 'Indicaciones',fontSize: 18),
               _instruccionesFoto(),
               const SizedBox(height: 15,),
               _botonTomarFoto(),
-              const SizedBox(height: 50),
-              _ContinuarButton()
+              const SizedBox(height: 10),
+              _continuarButton()
             ],
           ),
         ),
@@ -128,7 +128,7 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
 
   Widget _botonTomarFoto() {
     return Container(
-      margin: const EdgeInsets.only(top: 25),
+      margin: const EdgeInsets.only(top: 5),
       child: ElevatedButton(
         onPressed: () {
           _controller.takePicture();
@@ -139,11 +139,11 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.camera_alt, color: blanco,), // Icono de cámara
+            Icon(Icons.camera_alt, color: blanco, size: 16,), // Icono de cámara
             SizedBox(width: 8), // Espacio entre el icono y el texto
             Text(
               'Tomar Foto',
-              style: TextStyle(fontSize: 20, color: blanco),
+              style: TextStyle(fontSize: 16, color: blanco),
             ),
           ],
         ),
@@ -151,17 +151,23 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
     );
   }
 
-
-
-  Widget _ContinuarButton() {
+  Widget _continuarButton() {
     // Verifica si se ha tomado y cargado una foto
     bool hasPhoto = _controller.pickedFile != null;
     return Visibility(
       visible: hasPhoto,
       child: ElevatedButton(
         onPressed: () {
-          _controller.guardarFotoPerfil();
-
+          // Verificar conexión a Internet antes de ejecutar la acción
+          connectionService.hasInternetConnection().then((hasConnection) {
+            if (hasConnection) {
+              // Llama a _mostrarCajonDeBusqueda inmediatamente
+              _controller.guardarFotoPerfil();
+            } else {
+              // Llama a alertSinInternet inmediatamente si no hay conexión
+              alertSinInternet();
+            }
+          });
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: azulOscuro, // Color del botón
@@ -169,24 +175,45 @@ class _TakeFotoPerfilState extends State<TakeFotoPerfil> {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(Icons.double_arrow_rounded, color: blanco, size: 16,),
+            SizedBox(width: 12),
             Text(
-              'Continuar',
-              style: TextStyle(fontSize: 20, color: blanco),
+              'Subir foto',
+              style: TextStyle(fontSize: 16, color: blanco),
             ),
-            SizedBox(width: 12), // Espacio entre el icono y el texto
-            Icon(Icons.arrow_forward_ios_sharp, color: blanco,), // Icono de cámara
           ],
         ),
       ),
     );
   }
 
-  Widget _instruccionesFoto(){
-    return headerText(
-      text: 'Por favor toma una selfie donde se pueda observar perfectamente toda tu cabeza y parte de los hombros. Verifica que no la tomes a contra luz.',
-      fontSize: 14,
-      color: negroLetras,
-      fontWeight: FontWeight.w500
+  Future alertSinInternet (){
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sin Internet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),),
+          content: const Text('Por favor, verifica tu conexión e inténtalo nuevamente.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
     );
   }
+
+  Widget _instruccionesFoto(){
+    return const Text('Por favor toma una selfie donde se pueda observar perfectamente toda tu cabeza y parte de los hombros. Verifica que no la tomes a contra luz.',
+    style: TextStyle(
+      fontSize: 14,
+      color: Colors.black,
+      height: 1
+    ),);
+  }
+
 }

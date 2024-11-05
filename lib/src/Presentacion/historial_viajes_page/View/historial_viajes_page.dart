@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart'; // Importar el paquete intl
-import 'package:tayrona_usuario/src/Presentacion/historial_viajes_page/historial_viajes_controller/historial_viajes_controller.dart';
-import 'package:tayrona_usuario/src/models/travelHistory.dart';
 import '../../../colors/colors.dart';
+import '../../../models/travelHistory.dart';
 import '../../commons_widgets/headers/header_text/header_text.dart';
+import '../historial_viajes_controller/historial_viajes_controller.dart';
 
 class HistorialViajesPage extends StatefulWidget {
   const HistorialViajesPage({Key? key}) : super(key: key);
@@ -20,48 +21,44 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
   void initState() {
     super.initState();
     _controller = HistorialViajesController();
-    SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _controller.init(context, refresh);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: const Size(375, 812));
     return Scaffold(
+      backgroundColor: blancoCards,
       key: _controller.key,
       appBar: AppBar(
         backgroundColor: blancoCards,
-        iconTheme: const IconThemeData(color: negro, size: 26),
+        iconTheme: IconThemeData(color: negro, size: 26.r),
         title: headerText(
           text: "Historial de Viajes",
-          fontSize: 20,
+          fontSize: 20.r,
           fontWeight: FontWeight.w600,
           color: negro,
         ),
-        actions: const <Widget>[
-          Image(
-            height: 40.0,
-            width: 60.0,
-            image: AssetImage('assets/images/historial.png'),
-          ),
-        ],
+
       ),
       body: FutureBuilder(
         future: _controller.getAll(),
         builder: (context, AsyncSnapshot<List<TravelHistory>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Muestra un indicador de progreso mientras se carga la información
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(
+                  const CircularProgressIndicator(
                     color: gris,
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     'Cargando información...',
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 12.r),
                   ),
                 ],
               ),
@@ -81,15 +78,15 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
             return ListView.builder(
               itemCount: snapshot.data!.length,
               itemBuilder: (_, index) {
-                return _cardHistoryInfo(
-                  snapshot.data![index].from ?? '',
-                  snapshot.data![index].to ?? '',
-                  snapshot.data![index].nameDriver ?? '',
-                  snapshot.data![index].apellidosDriver ?? '',
-                  snapshot.data![index].placa ?? '',
-                  snapshot.data![index].finalViaje ?? '',
-                  snapshot.data![index].tarifa ?? 0,
-                  snapshot.data![index].id ?? '',
+                return _historyInfo(
+                  snapshot.data![index].from,
+                  snapshot.data![index].to,
+                  snapshot.data![index].nameDriver,
+                  snapshot.data![index].apellidosDriver,
+                  snapshot.data![index].placa,
+                  snapshot.data![index].finalViaje,
+                  snapshot.data![index].tarifa,
+                  snapshot.data![index].id,
                 );
               },
             );
@@ -106,7 +103,7 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
     }
   }
 
-  Widget _cardHistoryInfo(
+  Widget _historyInfo(
       String from,
       String to,
       String name,
@@ -123,91 +120,74 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
       name: '', // No queremos mostrar el nombre de la moneda
       customPattern: '\u00A4#,##0', // Patrón de formato personalizado para colocar el símbolo al principio
     );
+
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         _controller.goToDetailHistory(idTravelHistory);
       },
       child: Container(
-        padding: const EdgeInsets.all(10),
-        margin: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: blanco,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: grisMedio,
-            width: 1,
-          ),
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Espacio vertical entre registros
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Información del destino
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Image.asset('assets/images/marker_destino.png', height: 15.r, width: 15.r),
+                const SizedBox(width: 5),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Image.asset('assets/images/posicion_destino.png', height: 15, width: 15),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                             'Destino: ${to ?? ''}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                                fontSize: 11,
-                              ),
-                              maxLines: 1, // Máximo de 1 línea
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: Text(
+                    to,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                      fontSize: 14.r,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 5),
-              child: const Divider(height: 1, color: grisMedio),
-            ),
-            Container(
-              alignment: Alignment.topLeft,
-              child: Text(
-                'Hora finalización : ${fechaViaje ?? ''}',
-                style: const TextStyle(
-                  color: gris,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 11,
-                ),
+            // Hora de finalización
+            Text(
+              'Hora finalización : $fechaViaje',
+              style: TextStyle(
+                color: negro,
+                fontWeight: FontWeight.w500,
+                fontSize: 14.r,
               ),
             ),
+
+            // Tarifa y botón de eliminar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   formatter.format(tarifa), // Formatear la tarifa con NumberFormat
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: negro,
-                    fontSize: 16,
+                    fontSize: 16.r,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.delete,
-                  color: Colors.redAccent,
-                  size: 18,
+                  color: negro,
+                  size: 18.r,
                 ),
               ],
             ),
+
+            // Espacio entre registros
+            const SizedBox(height: 15), // Espacio entre cada registro
           ],
         ),
       ),
     );
   }
+
+
 
 
 }

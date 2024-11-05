@@ -1,14 +1,17 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tayrona_usuario/providers/client_provider.dart';
-import 'package:tayrona_usuario/src/models/client.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/client_provider.dart';
+import 'package:zafiro_cliente/src/models/client.dart';
 import '../../colors/colors.dart';
 import '../commons_widgets/headers/header_text/header_text.dart';
 
 class PaginaDeBloqueo extends StatefulWidget {
+  const PaginaDeBloqueo({super.key});
+
 
   @override
   State<PaginaDeBloqueo> createState() => _PaginaDeBloqueoState();
@@ -39,21 +42,30 @@ class _PaginaDeBloqueoState extends State<PaginaDeBloqueo> {
       backgroundColor: blancoCards,
       body:
           Container(
-            margin: const EdgeInsets.only(top: 20, right: 15),
+            margin: const EdgeInsets.only(top: 60, right: 15),
             child: SingleChildScrollView(
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 50),
+                    margin: const EdgeInsets.only(top: 10),
                     alignment: Alignment.centerRight,
-                    child: const Image(
-                        height: 50.0,
-                        width: double.infinity,
-                        image: AssetImage('assets/images/logo_tayrona_solo.png')),
+                    child: const Column(
+                      children: [
+                        Image(
+                          height: 30.0,
+                          width: double.infinity,
+                          image: AssetImage('assets/images/imagen_zafiro_azul.png'),
+                        ),
+                        Image(
+                          height: 50.0,
+                          width: double.infinity,
+                          image: AssetImage('assets/images/logo_zafiro-pequeño.png'),
+                        ),
+                      ],
+                    ),
                   ),
                   Container(
-                    margin: const EdgeInsets.only(bottom: 50),
-                    padding: const EdgeInsets.only(left: 20, right: 20, top: 50),
+                    padding: const EdgeInsets.only(left: 20, right: 20),
                     child: Column(
                       children: [
                         headerText(
@@ -65,18 +77,16 @@ class _PaginaDeBloqueoState extends State<PaginaDeBloqueo> {
                         headerText(
                             text: 'SUSPENDIDO',
                             fontSize: 20,
-                            color: negro,
+                            color: Colors.redAccent,
                             fontWeight: FontWeight.w900
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 15),
-                    child: Icon(Icons.block, color: Colors.red.shade900, size: 100)),
+                  const Icon(Icons.block, color: Colors.redAccent, size: 60),
 
                   Container(
-                    margin: const EdgeInsets.only(left: 40, right: 40),
+                    margin: const EdgeInsets.only(left: 20, right: 20),
                     padding: const EdgeInsets.all(10),
                     child: headerText(
                         text: 'Si deseas tener más detalles al respecto comunicate con nosotros por cualquiera de nuestros canales de información.',
@@ -137,8 +147,6 @@ class _PaginaDeBloqueoState extends State<PaginaDeBloqueo> {
               ),
             ),
           ),
-
-
     );
   }
 
@@ -146,17 +154,19 @@ class _PaginaDeBloqueoState extends State<PaginaDeBloqueo> {
     String userId = _authProvider.getUser()!.uid;
 
     // Obtener el conductor actualizado
-    Client? _client = await _clientProvider.getById(userId);
+    Client? client = await _clientProvider.getById(userId);
     const phoneNumber = '+573108101723';
-    String? name = _client?.the01Nombres;
-    String? apellidos = _client?.the02Apellidos;
-    String message = 'Mi nombre es ${name} ${apellidos}. Requiero saber el motivo del bloqueo de mi cuenta.';
+    String? name = client?.the01Nombres;
+    String? apellidos = client?.the02Apellidos;
+    String message = 'Mi nombre es $name $apellidos. Requiero saber el motivo del bloqueo de mi cuenta.';
     final whatsappLink = Uri.parse('whatsapp://send?phone=$phoneNumber&text=${Uri.encodeQueryComponent(message)}');
 
     try {
       await launchUrl(whatsappLink);
     } catch (e) {
-      showNoWhatsAppInstalledDialog(context);
+      if(context.mounted){
+        showNoWhatsAppInstalledDialog(context);
+      }
     }
   }
 
@@ -182,11 +192,12 @@ class _PaginaDeBloqueoState extends State<PaginaDeBloqueo> {
 
   void makePhoneCall(String phoneNumber) async {
     final phoneCallUrl = 'tel:$phoneNumber';
-
     try {
       await launch(phoneCallUrl);
     } catch (e) {
-      print('No se pudo realizar la llamada: $e');
+      if (kDebugMode) {
+        print('No se pudo realizar la llamada: $e');
+      }
     }
   }
 }

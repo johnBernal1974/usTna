@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:tayrona_usuario/src/Presentacion/profile_page/profileController/profileController.dart';
+import 'package:zafiro_cliente/src/Presentacion/profile_page/profileController/profile_controller.dart';
 import '../../colors/colors.dart';
 import '../commons_widgets/headers/header_text/header_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -32,10 +32,10 @@ class _ProfilePageState extends State<ProfilePage> {
     _controller.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: blancoCards,
       appBar: AppBar(
         backgroundColor: blancoCards,
         iconTheme: const IconThemeData(color: negro, size: 24),
@@ -48,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
           Image(
               height: 40.0,
               width: 100.0,
-              image: AssetImage('assets/images/logo_tayrona_solo.png'))
+              image: AssetImage('assets/images/logo_zafiro-pequeño.png'))
 
         ],
       ),
@@ -69,11 +69,9 @@ class _ProfilePageState extends State<ProfilePage> {
               _identificacion(),
               _email(),
               _celular(),
-
             ],
           ),
         ),
-
       ),
     );
   }
@@ -85,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: CircleAvatar(
         backgroundColor: blanco,
         backgroundImage: _controller.client?.image != null
-            ? CachedNetworkImageProvider(_controller.client!.image!)
+            ? CachedNetworkImageProvider(_controller.client!.image)
             : null,
         radius: 80,
       ),
@@ -93,59 +91,66 @@ class _ProfilePageState extends State<ProfilePage> {
   }
   Widget _nombres(){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         headerText( text: 'Nombre:' , color: gris, fontSize: 14,fontWeight: FontWeight.w500),
         const SizedBox(width: 5),
-        headerText( text: _controller.client?.the01Nombres ?? "", color: negroLetras,fontSize: 16,fontWeight: FontWeight.w700),
+        headerText( text: _controller.client?.the01Nombres ?? "", color: negro,fontSize: 14,fontWeight: FontWeight.w700),
       ],
     );
   }
 
   Widget _apellidos(){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         headerText( text: 'Apellidos:' , color: gris, fontSize: 14,fontWeight: FontWeight.w500),
         const SizedBox(width: 5),
-        headerText( text: _controller.client?.the02Apellidos ?? "", color: negroLetras,fontSize: 16,fontWeight: FontWeight.w700),
+        headerText( text: _controller.client?.the02Apellidos ?? "", color: negro,fontSize: 14,fontWeight: FontWeight.w700),
       ],
     );
   }
 
   Widget _tipoDocumento(){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         headerText( text: 'Documento:' , color: gris, fontSize: 14,fontWeight: FontWeight.w500),
         const SizedBox(width: 5),
-        headerText( text: _controller.client?.the03TipoDeDocumento ?? '', color: negroLetras,fontSize: 16,fontWeight: FontWeight.w700),
+        headerText( text: _controller.client?.the03TipoDeDocumento ?? '', color: negro,fontSize: 14,fontWeight: FontWeight.w700),
       ],
     );
   }
 
   Widget _identificacion(){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         headerText( text: 'No. Identificación:' , color: gris, fontSize: 14,fontWeight: FontWeight.w500),
         const SizedBox(width: 5),
-        headerText( text: _controller.client?.the04NumeroDocumento ?? '', color: negroLetras,fontSize: 16,fontWeight: FontWeight.w700),
+        headerText( text: _controller.client?.the04NumeroDocumento ?? '', color: negro,fontSize: 14,fontWeight: FontWeight.w700),
       ],
     );
   }
 
   Widget _email(){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         headerText( text: 'Email:' , color: gris, fontSize: 14,fontWeight: FontWeight.w500),
         const SizedBox(width: 5),
-        headerText( text: _controller.client?.the06Email ?? '', color: negroLetras,fontSize: 16,fontWeight: FontWeight.w700),
+        headerText( text: _controller.client?.the06Email ?? '', color: negro,fontSize: 14,fontWeight: FontWeight.w700),
       ],
     );
   }
+
   Widget _celular(){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         headerText( text: 'Celular:' , color: gris, fontSize: 14,fontWeight: FontWeight.w500),
         const SizedBox(width: 5),
-        headerText( text: _controller.client?.the07Celular ?? '', color: negroLetras,fontSize: 16,fontWeight: FontWeight.w700),
+        headerText( text: _controller.client?.the07Celular ?? '', color: negro,fontSize: 14,fontWeight: FontWeight.w700),
       ],
     );
   }

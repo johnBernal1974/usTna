@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../colors/colors.dart';
 import '../commons_widgets/headers/header_text/header_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'detail_history_Controller/detail_history_Controller.dart';
+import 'detail_history_Controller/detail_history_controller.dart';
 
 class DetailHistoryPage extends StatefulWidget {
-  const DetailHistoryPage({Key? key}) : super(key: key);
+  const DetailHistoryPage({super.key});
 
   @override
   State<DetailHistoryPage> createState() => _DetailHistoryPageState();
@@ -19,40 +20,43 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
   @override
   void initState() {
     super.initState();
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       _controller.init(context, refresh);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: const Size(375, 812));
     return Scaffold(
+      backgroundColor: blancoCards,
       appBar: AppBar(
         backgroundColor: blancoCards,
-        iconTheme: const IconThemeData(color: negro, size: 24),
-        title: const Text(
+        iconTheme: IconThemeData(color: negro, size: 24.r),
+        title: Text(
           "Detalles del viaje",
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 22.r,
             fontWeight: FontWeight.bold,
             color: negro,
           ),
         ),
-        actions: const <Widget>[
+        actions:  <Widget>[
           Image(
-            height: 40.0,
-            width: 100.0,
-            image: AssetImage('assets/images/logo_tayrona_solo.png'),
+            height: 40.r,
+            width: 100.r,
+            image: const AssetImage('assets/images/logo_zafiro-pequeño.png'),
           )
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(25),
+        padding: EdgeInsets.all(15.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             _buildDriverInfo(),
-            const SizedBox(height: 15),
+            SizedBox(height: 15.r),
             _buildDivider(),
             _buildOrigin(),
             _buildDivider(),
@@ -74,17 +78,19 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
 
   Widget _buildDriverInfo() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildProfilePhoto(),
-        const SizedBox(width: 25),
+        SizedBox(width: 25.r),
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Conductor', style: TextStyle(fontSize: 11)),
+            const Text('Conductor', style: TextStyle(fontSize: 14)),
             _buildName(),
             _buildSurname(),
+            const SizedBox(height: 30),
             _buildTipovehiculo(),
-            _buildLicensePlate()
+
 
           ],
         )
@@ -96,17 +102,17 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
     if (_controller.driver != null) {
       return Container(
         alignment: Alignment.center,
-        margin: const EdgeInsets.only(bottom: 15),
+        margin: EdgeInsets.only(bottom: 15.r),
         child: CircleAvatar(
           backgroundColor: blanco,
           backgroundImage: _controller.driver!.image != null
-              ? CachedNetworkImageProvider(_controller.driver!.image!)
+              ? CachedNetworkImageProvider(_controller.driver!.image)
               : null,
           radius: 50,
         ),
       );
     } else {
-      return CircularProgressIndicator();
+      return const CircularProgressIndicator();
     }
   }
 
@@ -116,7 +122,7 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
       child: headerText(
         text: _controller.driver?.the01Nombres ?? "",
         color: negro,
-        fontSize: 16,
+        fontSize: 18.r,
         fontWeight: FontWeight.w800,
       ),
     );
@@ -127,9 +133,9 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
       alignment: Alignment.topLeft,
       child: headerText(
         text: _controller.driver?.the02Apellidos ?? "",
-        color: negroLetras,
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
+        color: negro,
+        fontSize: 14.r,
+        fontWeight: FontWeight.w800,
       ),
     );
   }
@@ -142,14 +148,14 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
         headerText(
           text: 'Placa:',
           color: negroLetras,
-          fontSize: 12,
+          fontSize: 12.r,
           fontWeight: FontWeight.w500,
         ),
         const SizedBox(width: 5),
         headerText(
           text: _controller.driver?.the18Placa ?? '',
           color: negro,
-          fontSize: 16,
+          fontSize: 18.r,
           fontWeight: FontWeight.w700,
         ),
       ],
@@ -166,11 +172,24 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
     }
     return Container(
       alignment: Alignment.topLeft,
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          headerText(text: tipoVehiculo,color: negro,fontSize: 14,fontWeight: FontWeight.w700),
-          obtenerTipoVehiculo()
-
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              headerText(text: tipoVehiculo,color: negro,fontSize: 14,fontWeight: FontWeight.w700),
+              _buildLicensePlate(),
+            ],
+          ),
+          SizedBox(width: 30.r),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              obtenerTipoVehiculo()
+            ],
+          )
         ],
       ),
     );
@@ -179,15 +198,13 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
   Widget obtenerTipoVehiculo() {
     String tipoVehiculo = _controller.driver?.rol ?? "";
     if (tipoVehiculo == "carro") {
-      return Image.asset("assets/images/carro_azul.png", width: 60);
+      return Image.asset("assets/images/carro_plateado.png", width: 80.r);
     } else if (tipoVehiculo == "moto") {
-      return Image.asset("assets/images/moto_conductor.png", width: 40);
+      return Image.asset("assets/images/moto_conductor.png", width: 40.r);
     } else {
       return Container(); // Devolver un widget vacío si no hay datos
     }
   }
-
-
 
   Widget _buildDivider() {
     return const Divider(height: 1, color: grisMedio);
@@ -209,23 +226,17 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
 
   Widget _buildLocationInfo({required String title, required String content}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 15.r, vertical: 5.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.location_pin,
-                color: negro,
-                size: 12,
-              ),
-              const SizedBox(width: 5),
               Text(
                 title,
-                style: const TextStyle(
-                  color:negro,
-                  fontSize: 12,
+                style: TextStyle(
+                  color:primary,
+                  fontSize: 14.r,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -233,9 +244,9 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
           ),
           Text(
             content,
-            style: const TextStyle(
-              color: gris,
-              fontSize: 12,
+            style: TextStyle(
+              color: negro,
+              fontSize: 18.r,
               fontWeight: FontWeight.w600,
             ),
             maxLines: 2,
@@ -245,7 +256,6 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
       ),
     );
   }
-
 
   Widget _inicioViaje() {
     return Column(
@@ -261,23 +271,17 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
 
   Widget _buildTimeInfoInicio({required String title, required String content}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 15.r, vertical: 5.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.timer,
-                color: verdeCajon,
-                size: 12,
-              ),
-              const SizedBox(width: 5),
               Text(
                 title,
-                style: const TextStyle(
-                  color: negro,
-                  fontSize: 12,
+                style: TextStyle(
+                  color: primary,
+                  fontSize: 14.r,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -285,9 +289,9 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
           ),
           Text(
             content,
-            style: const TextStyle(
-              color: gris,
-              fontSize: 12,
+            style: TextStyle(
+              color: negro,
+              fontSize: 14.r,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -298,23 +302,17 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
 
   Widget _buildTimeInfoFinal({required String title, required String content}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 15.r, vertical: 5.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.timer,
-                color: Colors.red,
-                size: 12,
-              ),
-              const SizedBox(width: 5),
               Text(
                 title,
-                style: const TextStyle(
-                  color: negro,
-                  fontSize: 12,
+                style: TextStyle(
+                  color: primary,
+                  fontSize: 14.r,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -322,9 +320,9 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
           ),
           Text(
             content,
-            style: const TextStyle(
-              color: gris,
-              fontSize: 12,
+            style: TextStyle(
+              color: negro,
+              fontSize: 14.r,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -358,23 +356,17 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-
+          padding: EdgeInsets.symmetric(horizontal: 15.r, vertical: 5.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+               Row(
                 children: [
-                  Icon(
-                    Icons.attach_money,
-                    color: Colors.blue,
-                    size: 12,
-                  ),
                   Text(
                     'Tarifa',
                     style: TextStyle(
-                      color: negro,
-                      fontSize: 12,
+                      color: primary,
+                      fontSize: 14.r,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -382,9 +374,9 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
               ),
               Text(
                 formatter.format(_controller.travelHistory?.tarifa ?? 0),
-                style: const TextStyle(
+                style: TextStyle(
                   color: negro,
-                  fontSize: 12,
+                  fontSize: 14.r,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -400,24 +392,17 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-
+          padding: EdgeInsets.symmetric(horizontal: 15.r, vertical: 10.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(
-                    Icons.star,
-                    color: Colors.amber,
-                    size: 12,
-                  ),
-                  SizedBox(width: 5),
                   Text(
                     'Calificación',
                     style: TextStyle(
-                      color: negro,
-                      fontSize: 12,
+                      color: primary,
+                      fontSize: 14.r,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -425,8 +410,8 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
               ),
               headerText(
                 text: _controller.travelHistory?.calificacionAlConductor.toString() ?? '',
-                color: gris,
-                fontSize: 12,
+                color: negro,
+                fontSize: 14.r,
                 fontWeight: FontWeight.w600,
               ),
             ],

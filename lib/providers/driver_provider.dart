@@ -39,7 +39,6 @@ class DriverProvider{
     else{
       return null;
     }
-
   }
 
   Future<void> update(Map<String, dynamic> data, String id) {

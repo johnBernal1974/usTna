@@ -1,76 +1,74 @@
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:tayrona_usuario/src/models/client.dart';
-import 'package:tayrona_usuario/src/models/driver.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/driver_provider.dart';
 import '../../../colors/colors.dart';
+import 'package:zafiro_cliente/src/models/client.dart';
+import 'package:zafiro_cliente/src/models/driver.dart';
 
 class BottomSheetDriverInfo extends StatefulWidget {
-
-  late String imageUrl;
-  late String name;
-  late String apellido;
+  final String imageUrl;
+  final String name;
+  final String apellido;
   late String calificacion;
-  late String numero_viajes;
-  late String celular;
-  late String placa;
-  late String color;
-  late String servicio;
-  late String marca;
+  final String numeroViajes;
+  final String celular;
+  final String placa;
+  final String color;
+  final String servicio;
+  final String marca;
+  final String idDriver;
 
-
-  BottomSheetDriverInfo({
+  BottomSheetDriverInfo({super.key,
     required this.imageUrl,
     required this.name,
     required this.apellido,
     required this.calificacion,
-    required this.numero_viajes,
+    required this.numeroViajes,
     required this.celular,
     required this.placa,
     required this.color,
     required this.servicio,
     required this.marca,
-});
-
+    required this.idDriver,
+  });
 
   @override
   State<BottomSheetDriverInfo> createState() => _BottomSheetDriverInfoState();
 }
 
 class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
-
-
   Client? client;
   Driver? driver;
   late DriverProvider _driverProvider;
   late MyAuthProvider _authProvider;
+  String tipoServicio = '';
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _driverProvider = DriverProvider();
     _authProvider = MyAuthProvider();
     getDriverInfo();
+    getClientRatings();
   }
 
   @override
   Widget build(BuildContext context) {
-    String placaCompleta =  widget.placa;
+    String placaCompleta = widget.placa;
     String placaFormateada = '';
     if (placaCompleta.length == 6) {
       String letras = placaCompleta.substring(0, 3);
       String numeros = placaCompleta.substring(3);
       placaFormateada = '$letras-$numeros';
     } else {
-      // Manejar el caso en el que la placa no tenga 6 caracteres
-      placaFormateada = placaCompleta; // O asignar un valor por defecto
+      placaFormateada = placaCompleta;
     }
     return Container(
+      color: blancoCards,
       padding: const EdgeInsets.all(16),
-      width: MediaQuery.of(context).size.width, // Ancho del contenido igual al ancho de la pantalla
+      width: MediaQuery.of(context).size.width,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,44 +83,50 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                   Container(
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white, // Color de fondo blanco
+                      color: Colors.white,
                     ),
-                    child: CircleAvatar(
-                      radius: 80,
-                      backgroundImage: widget.imageUrl != null
-                          ? NetworkImage(widget.imageUrl!)
-                          : null, // No se proporciona ninguna imagen cuando widget.imageUrl es nulo
+                    child: Container(
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        image: DecorationImage(
+                          image: widget.imageUrl.isNotEmpty
+                              ? NetworkImage(widget.imageUrl)
+                              : AssetImage('assets/images/default_image.png') as ImageProvider,
+                          fit: BoxFit.cover,
+                        ),
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-
                   Column(
                     children: [
                       Container(
-                        margin: const EdgeInsets.only(left: 20, right: 20,bottom: 10),
+                        margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             IconButton(
-                              onPressed: (){
-                                makePhoneCall( widget.celular);
-                              },
-                              icon: const Icon(Icons.phone),
-                              iconSize: 35),
+                                onPressed: () {
+                                  makePhoneCall(widget.celular);
+                                },
+                                icon: const Icon(Icons.phone),
+                                iconSize: 24),
                             const SizedBox(width: 25),
                             IconButton(
-                              onPressed: (){
+                              onPressed: () {
                                 _openWhatsApp(context);
                               },
                               icon: Image.asset('assets/images/icono_whatsapp.png',
-                                  width: 35,
-                                  height: 35),
+                                  width: 24,
+                                  height: 24),
                             ),
-
                           ],
                         ),
                       ),
                       Column(
-                        mainAxisSize: MainAxisSize.min, // Ajusta el tamaño de la Column
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
@@ -143,7 +147,6 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                         ],
                       ),
                       const SizedBox(height: 10),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -153,14 +156,13 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                                 children: [
                                   Icon(
                                     Icons.directions_car,
-                                    color: primary,
+                                    color: negro,
                                     size: 16,
                                   ),
-
                                 ],
                               ),
                               Text(
-                                widget.numero_viajes,
+                                widget.numeroViajes,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
@@ -175,10 +177,9 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                                 children: [
                                   Icon(
                                     Icons.star,
-                                    color: primary,
+                                    color: negro,
                                     size: 16,
                                   ),
-
                                 ],
                               ),
                               Text(
@@ -190,14 +191,12 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                               ),
                             ],
                           ),
-
                         ],
                       ),
                     ],
                   )
                 ],
               ),
-
               const SizedBox(height: 10),
               Container(
                   margin: const EdgeInsets.only(top: 10, bottom: 10),
@@ -211,16 +210,26 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                       const Text('Placa', style: TextStyle(fontWeight: FontWeight.bold)),
                       Container(
                         padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey), // Color del borde gris
-                        ),
-                        child: Text(
-                          placaFormateada,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 26,
-                          ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.asset(
+                              widget.servicio == 'Particular'
+                                  ? 'assets/images/fondo_placa.png'
+                                  : 'assets/images/placa_blanca.png',
+                              width: 120,
+                              height: 60,
+                              fit: BoxFit.contain,
+                            ),
+                            Text(
+                              placaFormateada,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 24,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -232,19 +241,19 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
                       Row(
                         children: [
                           const Text('Marca: '),
-                          Text(widget.marca, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
+                          Text(widget.marca, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
                         ],
                       ),
                       Row(
                         children: [
                           const Text('Color: '),
-                          Text(widget.color, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
+                          Text(widget.color, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
                         ],
                       ),
                       Row(
                         children: [
                           const Text('Servicio: '),
-                          Text(widget.servicio, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
+                          Text(widget.servicio, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
                         ],
                       ),
                     ],
@@ -260,6 +269,11 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
 
   void getDriverInfo() async {
     driver = await _driverProvider.getById(_authProvider.getUser()!.uid);
+    if (driver != null) {
+      setState(() {
+        tipoServicio = driver!.the19TipoServicio;
+      });
+    }
   }
 
 
@@ -305,6 +319,34 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
       await launch(phoneCallUrl);
     } catch (e) {
       print('No se pudo realizar la llamada: $e');
+    }
+  }
+
+  void getClientRatings() async {
+    final drivertId = widget.idDriver;
+    final ratingsSnapshot = await FirebaseFirestore.instance
+        .collection('Drivers')
+        .doc(drivertId)
+        .collection('ratings')
+        .get();
+
+    if (ratingsSnapshot.docs.isNotEmpty) {
+      double totalRating = 0;
+      int ratingCount = ratingsSnapshot.docs.length;
+
+      for (var doc in ratingsSnapshot.docs) {
+        totalRating += doc['calificacion'];
+      }
+
+      double averageRating = totalRating / ratingCount;
+
+      setState(() {
+        widget.calificacion = averageRating.toStringAsFixed(1);
+      });
+    } else {
+      setState(() {
+        widget.calificacion = 'N/A';
+      });
     }
   }
 }
