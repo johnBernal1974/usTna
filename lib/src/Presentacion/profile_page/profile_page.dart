@@ -60,6 +60,35 @@ class _ProfilePageState extends State<ProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _fotoPerfil(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'Viajes realizados',
+                          style: TextStyle(color: primary, fontSize: 12),
+                          textAlign: TextAlign.center, // Asegúrate de centrar el texto también
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        _controller.client?.the19Viajes.toString() ?? '',
+                        style: const TextStyle(color: negro, fontWeight: FontWeight.w900),
+                        textAlign: TextAlign.center, // Asegúrate de centrar el texto
+                      ),
+                      const SizedBox(height: 25),
+                      const Divider(height: 1, color: grisMedio),
+                      const SizedBox(height: 5),
+                    ],
+                  ),
+
+                ],
+              ),
               _textSubtitledatosPersonales(),
               const Divider(height: 1, color: grisMedio),
               const SizedBox(height: 5),

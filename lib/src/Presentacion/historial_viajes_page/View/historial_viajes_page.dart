@@ -95,8 +95,6 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
       ),
     );
   }
-
-
   void refresh() {
     if (mounted) {
       setState(() {});
@@ -126,7 +124,7 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
         _controller.goToDetailHistory(idTravelHistory);
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Espacio vertical entre registros
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5), // Espacio vertical entre registros
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -153,34 +151,25 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
             Text(
               'Hora finalización : $fechaViaje',
               style: TextStyle(
-                color: negro,
-                fontWeight: FontWeight.w500,
-                fontSize: 14.r,
+                color: gris,
+                fontWeight: FontWeight.w400,
+                fontSize: 12.r,
               ),
             ),
 
             // Tarifa y botón de eliminar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  formatter.format(tarifa), // Formatear la tarifa con NumberFormat
-                  style: TextStyle(
-                    color: negro,
-                    fontSize: 16.r,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Icon(
-                  Icons.delete,
-                  color: negro,
-                  size: 18.r,
-                ),
-              ],
+            Text(
+              formatter.format(tarifa), // Formatear la tarifa con NumberFormat
+              style: TextStyle(
+                color: negro,
+                fontSize: 16.r,
+                fontWeight: FontWeight.w900,
+              ),
             ),
 
             // Espacio entre registros
-            const SizedBox(height: 15), // Espacio entre cada registro
+            const SizedBox(height: 5),
+            Divider()// Espacio entre cada registro
           ],
         ),
       ),

@@ -34,7 +34,7 @@ class TravelMapController{
   bool _soundConductorLlegadaReproducido = false;
   bool _soundConductorHaCanceladoReproducido = false;
   CameraPosition initialPosition = const CameraPosition(
-    target: LatLng(4.8470616, -74.0743461),
+    target: LatLng(4.3445324, -74.3639381),
     zoom: 12.0,
   );
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
@@ -53,6 +53,7 @@ class TravelMapController{
   late TravelInfoProvider _travelInfoProvider;
   late BitmapDescriptor fromMarker;
   late BitmapDescriptor toMarker;
+  Position? _position;
   Driver? driver;
   Client? client;
   LatLng? _driverLatlng;
@@ -102,7 +103,13 @@ class TravelMapController{
     _getTravelInfo();
     obtenerStatus();
     _actualizarIsTravelingTrue();
-
+    _position = await Geolocator.getCurrentPosition();
+    if (_position != null) {
+      initialPosition = CameraPosition(
+        target: LatLng(_position!.latitude, _position!.longitude),
+        zoom: 20.0,
+      );
+    }
   }
 
   // Método para verificar la conexión a Internet y mostrar el Snackbar si no hay conexión

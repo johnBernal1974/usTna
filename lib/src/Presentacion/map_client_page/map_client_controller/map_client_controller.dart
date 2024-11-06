@@ -299,20 +299,31 @@ class ClientMapController {
     Navigator.pushNamed(context, "eliminar_cuenta");
   }
 
-  void requestDriver(){
+  void requestDriver() {
     if (fromlatlng != null && tolatlng != null) {
-      Navigator.pushNamed(context, "travel_info_page", arguments: {
-        'from': from,
-        'to': to,
-        'fromlatlng': fromlatlng,
-        'tolatlng': tolatlng,
-      });
+      // Verificar si las coordenadas de origen y destino son iguales
+      if (from == to) {
+        // Mostrar un Snackbar informando que las coordenadas son iguales
+        if (key.currentState != null) {
+          Snackbar.showSnackbar(context, key, 'La posición de origen es la misma que el destino. Verifica el destino e intentalo nuevamente');
+        }
+      } else {
+        // Si las coordenadas no son iguales, navega a la página de viaje
+        Navigator.pushNamed(context, "travel_info_page", arguments: {
+          'from': from,
+          'to': to,
+          'fromlatlng': fromlatlng,
+          'tolatlng': tolatlng,
+        });
+      }
     } else {
+      // Si no se han seleccionado las coordenadas, mostrar un Snackbar
       if (key.currentState != null) {
         Snackbar.showSnackbar(context, key, 'Debes seleccionar el lugar de origen y destino');
       }
     }
   }
+
 
 
   Future<Position> _determinePosition() async {

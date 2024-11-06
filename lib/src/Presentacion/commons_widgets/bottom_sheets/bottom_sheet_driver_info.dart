@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../providers/auth_provider.dart';
@@ -318,7 +319,9 @@ class _BottomSheetDriverInfoState extends State<BottomSheetDriverInfo> {
     try {
       await launch(phoneCallUrl);
     } catch (e) {
-      print('No se pudo realizar la llamada: $e');
+      if (kDebugMode) {
+        print('No se pudo realizar la llamada: $e');
+      }
     }
   }
 

@@ -28,6 +28,17 @@ class GeofireProvider {
         .within(center: center, radius: radius, field: 'position');
   }
 
+  Stream<List<DocumentSnapshot>> getNearbyEncomiendas(double lat, double lng, double radius) {
+    GeoFirePoint center = _geo.point(latitude: lat, longitude: lng);
+
+    return _geo
+        .collection(
+      collectionRef: _ref.where('status', whereIn: ['motorcycler_available', 'driver_available']),
+    )
+        .within(center: center, radius: radius, field: 'position');
+  }
+
+
   Stream<DocumentSnapshot> getLocationByIdStream(String id) {
     return _ref.doc(id).snapshots(includeMetadataChanges: true);
   }

@@ -11,7 +11,7 @@ class AccessTokenFirebase {
         "type": "service_account",
         "project_id":  dotenv.env['PROJECT_ID']!,
         "private_key_id": dotenv.env['PRIVATE_KEY_ID']!,
-        "private_key": dotenv.env['PRIVATE_KEY']!,
+        "private_key": dotenv.env['PRIVATE_KEY']!.replaceAll(r'\n', '\n'),
         "client_email": dotenv.env['CLIENT_EMAIL']!,
         "client_id": dotenv.env['CLIENT_ID']!,
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",

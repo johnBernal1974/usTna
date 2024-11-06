@@ -524,30 +524,63 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
     );
   }
 
-  Widget _apuntesAlConductor(){
+  Widget _apuntesAlConductor() {
     return Visibility(
       visible: isVisibleCajonApuntesAlConductor,
       child: SingleChildScrollView(
         child: Container(
-          height:  MediaQuery.of(context).size.height * 0.5,
+          margin: const EdgeInsets.only(top: 50),
+          height: MediaQuery.of(context).size.height * 0.6,
           width: double.infinity,
           decoration: const BoxDecoration(
-              color: blanco,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-              boxShadow: [BoxShadow(
+            color: blanco,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+            boxShadow: [
+              BoxShadow(
                 color: gris,
-                offset: Offset(3,-2),
+                offset: Offset(3, -2),
                 blurRadius: 10,
-              )]
+              )
+            ],
           ),
           child: Container(
             padding: EdgeInsets.all(20.r),
             child: Column(
               children: [
-                Text('Escribe al conductor alguna información importante para tu viaje.', style: TextStyle(fontSize: 16.r, color: negro, fontWeight: FontWeight.w900), maxLines: 2,
+                // Verifica si tipoServicio es "Encomienda" para mostrar esta sección
+                if (_controller.tipoServicio == "Encomienda") ...[
+                  Column(
+                    children: [
+                      Text(
+                        'ENCOMIENDA',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18.r,
+                          color: negro,
+                        ),
+                      ),
+                      Image.asset(
+                        'assets/images/encomiendas.png',
+                        width: 100.r,
+                        height: 100.r,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.r),
+                ],
+                Text(
+                  _controller.tipoServicio == "Encomienda"
+                      ? 'Describe de manera clara en qué consiste tu encomienda.'
+                      : 'Escribe al conductor alguna información importante para tu viaje.',
+                  style: TextStyle(
+                    fontSize: 16.r,
+                    color: negro,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  maxLines: 2,
                 ),
                 SizedBox(height: 30.r),
                 TextField(
@@ -556,28 +589,26 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                   showCursor: true,
                   controller: _con,
                   textCapitalization: TextCapitalization.sentences,
-                  cursorColor:primary, // Cambia el color del cursor a rojo
+                  cursorColor: primary, // Cambia el color del cursor
                   decoration: const InputDecoration(
-                    // Personaliza la apariencia del borde del TextField
                     enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: primary), // Cambia el color de la línea inferior a azul cuando el TextField no está enfocado
+                      borderSide: BorderSide(color: primary), // Línea inferior azul cuando no está enfocado
                     ),
                     focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: primary), // Cambia el color de la línea inferior a verde cuando el TextField está enfocado
+                      borderSide: BorderSide(color: primary), // Línea inferior verde cuando está enfocado
                     ),
                   ),
                 ),
-
                 SizedBox(height: 35.r),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: primary,
-                          elevation: 6// Color del botón
+                        backgroundColor: primary,
+                        elevation: 6, // Elevación del botón
                       ),
-                      onPressed:(){
+                      onPressed: () {
                         if (mounted) {
                           setState(() {
                             isVisibleCajonApuntesAlConductor = false;
@@ -588,9 +619,20 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
                       },
                       child: Row(
                         children: [
-                          Text('Guardar', style: TextStyle(color: blanco, fontWeight: FontWeight.bold, fontSize: 14.r)),
+                          Text(
+                            'Guardar',
+                            style: TextStyle(
+                              color: blanco,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.r,
+                            ),
+                          ),
                           SizedBox(width: 10.r),
-                          Icon(Icons.touch_app_outlined, size: 16.r, color: blanco,)
+                          Icon(
+                            Icons.touch_app_outlined,
+                            size: 16.r,
+                            color: blanco,
+                          ),
                         ],
                       ),
                     ),
@@ -604,6 +646,7 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
     );
   }
 
+
   void _obtenerApuntesAlConductor(){
     apuntesAlConductor = _con.text;
   }
@@ -611,9 +654,22 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
   void verificarCedulaInicial() {
     String? fotoDelantera = _controller.client?.the13FotoCedulaDelantera;
     String? fotoTrasera = _controller.client?.the14FotoCedulaTrasera;
+
     if (fotoDelantera == "" || fotoTrasera == "") {
       Navigator.pushNamed(context, 'info_seguridad_page');
     } else {
+      // Primero validamos si es "Encomienda" y si los apuntes están vacíos
+      if (_controller.tipoServicio == "Encomienda") {
+        if (_controller.apuntesAlConductor?.isEmpty ?? true) {
+          // Mostrar el cajón de apuntes al conductor solo si está vacío
+          setState(() {
+            isVisibleCajonApuntesAlConductor = true;
+          });
+          return; // Aquí detenemos la ejecución de cualquier otra lógica
+        }
+      }
+
+      // El resto del código solo se ejecuta si los apuntes no están vacíos
       if (mounted) { // Verifica si el widget está montado
         setState(() {
           isVisibleTarjetaSolicitandoConductor = true;
@@ -622,9 +678,22 @@ class _ClientTravelInfoPageState extends State<ClientTravelInfoPage> {
 
       _startSearch();
       _controller.createTravelInfo();
-      _controller.getNearbyDrivers();
+
+      // Validación del tipo de servicio para llamar al método adecuado
+      if (_controller.tipoServicio == "Encomienda") {
+        // Enviar notificación al conductor y motociclista más cercano
+        _controller.getNearbyEncomiendas();
+
+      } else if (_controller.tipoServicio == "Transporte") {
+        // Solo enviar notificación al conductor más cercano
+        _controller.getNearbyDrivers();
+      } else if (_controller.tipoServicio == "Moto") {
+        // Solo enviar notificación al motociclista más cercano
+        _controller.getNearbyMotorcyclers();
+      }
     }
   }
+
 
   Widget _tarjetaInfoEncomienda(){
     if (!mounted) {

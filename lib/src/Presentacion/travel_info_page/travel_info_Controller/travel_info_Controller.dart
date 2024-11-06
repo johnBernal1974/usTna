@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../Helpers/Dates/DateHelpers.dart';
@@ -58,6 +59,7 @@ class TravelInfoController{
   late BitmapDescriptor fromMarker;
   late BitmapDescriptor toMarker;
   late Direction _directions;
+  Position? _position;
   String? min;
   String? km;
   double? total;
@@ -102,6 +104,13 @@ class TravelInfoController{
       toLatlng = arguments['tolatlng'];
       animateCameraToPosition(fromLatlng.latitude, fromLatlng.longitude);
       getGoogleMapsDirections(fromLatlng, toLatlng);
+      _position = await Geolocator.getCurrentPosition();
+      if (_position != null) {
+        initialPosition = CameraPosition(
+          target: LatLng(_position!.latitude, _position!.longitude),
+          zoom: 20.0,
+        );
+      }
     } else {
       if (kDebugMode) {
         print('Error: Los argumentos son nulos');
@@ -225,6 +234,7 @@ class TravelInfoController{
     tipoServicio = prefs.getString('tipoServicio');
     // Si no hay un tipo de servicio guardado, se establece por defecto a "Transporte"
     tipoServicio ??= "Transporte";
+    apuntesAlConductor = prefs.getString('apuntes_al_conductor');
   }
 
 
@@ -502,8 +512,6 @@ class TravelInfoController{
     return null;
   }
 
-
-
   void getNearbyDrivers() {
     Stream<List<DocumentSnapshot>> stream = _geofireProvider.getNearbyDrivers(
       fromLatlng.latitude,
@@ -530,6 +538,79 @@ class TravelInfoController{
       }
     });
   }
+
+  void getNearbyMotorcyclers() {
+    Stream<List<DocumentSnapshot>> stream = _geofireProvider.getNearbyMotorcyclers(
+      fromLatlng.latitude,
+      fromLatlng.longitude,
+      radioDeBusqueda ?? 1,
+    );
+
+    _streamSubscription = stream.listen((List<DocumentSnapshot> documentList) {
+      _streamSubscription?.cancel(); // Cancela la suscripción después de recibir los datos
+
+      if (documentList.isNotEmpty) {
+        nearbyMotorcyclers = documentList.map((d) => d.id).toList(); // Define 'nearbyMotorcyclers'
+        if (kDebugMode) {
+          print('Se encontraron ${nearbyMotorcyclers.length} motociclistas cercanos.');
+        }
+        _attemptToSendNotification(nearbyMotorcyclers, 0); // Llama al método para enviar notificación
+      } else {
+        if (kDebugMode) {
+          print('No se encontraron motociclistas cercanos.');
+        }
+      }
+    }, onError: (error) {
+      if (kDebugMode) {
+        print('Error al escuchar el stream de motociclistas cercanos: $error');
+      }
+    });
+  }
+
+  void getNearbyEncomiendas() {
+    Stream<List<DocumentSnapshot>> stream = _geofireProvider.getNearbyEncomiendas(
+      fromLatlng.latitude,
+      fromLatlng.longitude,
+      radioDeBusqueda ?? 1,
+    );
+
+    _streamSubscription = stream.listen((List<DocumentSnapshot> documentList) {
+      _streamSubscription?.cancel(); // Cancela la suscripción después de recibir los datos
+
+      if (documentList.isNotEmpty) {
+        // Aquí diferenciamos entre motociclistas y conductores
+        List<String> nearbyDrivers = [];
+        List<String> nearbyMotorcyclers = [];
+
+        for (var doc in documentList) {
+          if (doc['status'] == 'driver_available') {
+            nearbyDrivers.add(doc.id); // Si es conductor, lo agregamos a la lista de conductores
+          } else if (doc['status'] == 'motorcycler_available') {
+            nearbyMotorcyclers.add(doc.id); // Si es motociclista, lo agregamos a la lista de motociclistas
+          }
+        }
+
+        if (kDebugMode) {
+          print('Se encontraron ${nearbyDrivers.length} conductores y ${nearbyMotorcyclers.length} motociclistas cercanos.');
+        }
+
+        // Llama al método para enviar notificaciones a los conductores y motociclistas cercanos
+        _attemptToSendNotification(nearbyDrivers, 0); // Notificación a conductores
+        _attemptToSendNotification(nearbyMotorcyclers, 0); // Notificación a motociclistas
+
+      } else {
+        if (kDebugMode) {
+          print('No se encontraron conductores ni motociclistas cercanos.');
+        }
+      }
+    }, onError: (error) {
+      if (kDebugMode) {
+        print('Error al escuchar el stream de conductores y motociclistas cercanos: $error');
+      }
+    });
+  }
+
+
 
   void _attemptToSendNotification(List<String> driverIds, int index) {
     if (index >= driverIds.length) {
@@ -595,31 +676,6 @@ class TravelInfoController{
     });
   }
 
- void getNearbyMotorcyclers() {
-    Stream<List<DocumentSnapshot>> stream = _geofireProvider.getNearbyMotorcyclers(
-      fromLatlng.latitude,
-      fromLatlng.longitude,
-      radioDeBusqueda ?? 1,
-    );
-
-    _streamSubscription = stream.listen((List<DocumentSnapshot> documentList) {
-      if (documentList.isNotEmpty) {
-        for (DocumentSnapshot d in documentList) {
-          if (kDebugMode) {
-            print('MOTOCICLISTA ENCONTRADO: ${d.id}');
-          }
-          nearbyMotorcyclers.add(d.id);
-        }
-        getDriverInfo(nearbyMotorcyclers[0]);
-        _streamSubscription?.cancel();
-      } else {
-        if (kDebugMode) {
-          print('No se encontraron motociclistas cercanos.');
-        }
-      }
-    });
-  }
-
 
 
   void _checkDriverResponse() {
@@ -673,9 +729,6 @@ class TravelInfoController{
   }
 
   Future<void> getDriverInfo(String idDriver) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    tipoServicio = prefs.getString('tipoServicio')!;
-    apuntesAlConductor = prefs.getString('apuntes_al_conductor');
   }
 
   Future<bool> sendNotification(String token) async {

@@ -41,7 +41,6 @@ class PushNotificationsProvider {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('OnResume $message');
       _streamController.sink.add(message.data);
     });
   }
