@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../Helpers/Dates/DateHelpers.dart';
@@ -59,7 +59,6 @@ class TravelInfoController{
   late BitmapDescriptor fromMarker;
   late BitmapDescriptor toMarker;
   late Direction _directions;
-  Position? _position;
   String? min;
   String? km;
   double? total;
@@ -104,19 +103,13 @@ class TravelInfoController{
       toLatlng = arguments['tolatlng'];
       animateCameraToPosition(fromLatlng.latitude, fromLatlng.longitude);
       getGoogleMapsDirections(fromLatlng, toLatlng);
-      _position = await Geolocator.getCurrentPosition();
-      if (_position != null) {
-        initialPosition = CameraPosition(
-          target: LatLng(_position!.latitude, _position!.longitude),
-          zoom: 20.0,
-        );
-      }
     } else {
       if (kDebugMode) {
         print('Error: Los argumentos son nulos');
       }
     }
   }
+
   void dispose() {
     _streamSubscription?.cancel();
     _clientInfoSuscription?.cancel();
@@ -321,7 +314,7 @@ class TravelInfoController{
     if (!_mapController.isCompleted) {
       _mapController.complete(controller);
     }
-    await setPolylines(); // Asegúrate de que esto no dependa de _mapController ya completado a menos que necesario
+   // await setPolylines(); // Asegúrate de que esto no dependa de _mapController ya completado a menos que necesario
   }
 
 
@@ -390,7 +383,6 @@ class TravelInfoController{
       }
     }
   }
-
 
   void calcularPrecio() async {
     try {
@@ -610,8 +602,6 @@ class TravelInfoController{
     });
   }
 
-
-
   void _attemptToSendNotification(List<String> driverIds, int index) {
     if (index >= driverIds.length) {
       if (kDebugMode) {
@@ -676,8 +666,6 @@ class TravelInfoController{
     });
   }
 
-
-
   void _checkDriverResponse() {
     Stream<DocumentSnapshot> stream = _travelInfoProvider.getByIdStream(_authProvider.getUser()!.uid);
     _streamStatusSuscription = stream.listen((DocumentSnapshot document) {
@@ -699,7 +687,6 @@ class TravelInfoController{
       }
     });
   }
-
 
   void createTravelInfo() async {
     TravelInfo travelInfo = TravelInfo(

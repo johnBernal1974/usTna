@@ -357,6 +357,7 @@ class TravelMapController{
     _streamLocationController.cancel();
     _streamTravelController.cancel();
     _streamStatusController.cancel();
+    _player.dispose();
   }
 
   void onMapCreated(GoogleMapController controller){

@@ -37,6 +37,11 @@ class _TravelMapPageState extends State<TravelMapPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     ScreenUtil.init(context, designSize: const Size(375, 812));
