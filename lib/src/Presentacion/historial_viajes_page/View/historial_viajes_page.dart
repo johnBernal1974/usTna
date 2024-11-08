@@ -169,14 +169,11 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
 
             // Espacio entre registros
             const SizedBox(height: 5),
-            Divider()// Espacio entre cada registro
+            const Divider()// Espacio entre cada registro
           ],
         ),
       ),
     );
   }
-
-
-
 
 }

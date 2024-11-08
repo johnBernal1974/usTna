@@ -647,7 +647,11 @@ class _MapClientPageState extends State<MapClientPage> {
                   TextButton(
                     onPressed: () {
                       _authProvider.signOut();
-                      Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_,__,___) => const LoginPage()));
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        PageRouteBuilder(pageBuilder: (_, __, ___) => const LoginPage()),
+                            (Route<dynamic> route) => false,
+                      );
                     },
                     child: Text('Sí', style: TextStyle(
                         fontSize: 16.r, fontWeight: FontWeight.bold, color: negro

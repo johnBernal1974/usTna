@@ -50,7 +50,6 @@ class TakeFotoController {
         if(context.mounted){
           closeSimpleProgressDialog(context);
         }
-
         verificarRutaPagina();
       } catch (e) {
         if(context.mounted){
@@ -125,7 +124,9 @@ class TakeFotoController {
   }
 
   void goToVerificandoIdentidad(){
+    updateStatusProcesando();
     Navigator.pushNamedAndRemoveUntil(context, "verifying_identity", (route) => false);
+
   }
 
   void goToMapClient(){
@@ -166,6 +167,28 @@ class TakeFotoController {
         };
       }
       await _clientProvider.update(data, userId);
+    }
+  }
+
+  void updateStatusProcesando() async {
+    String? userId = _authProvider.getUser()?.uid;
+    if (userId != null) {
+
+      Client? client = await _clientProvider.getById(userId);
+      if (client != null) {
+        Map<String, dynamic> data = {
+          'Verificacion_Status': "Procesando",
+        };
+        await _clientProvider.update(data, userId);
+      } else {
+        if (kDebugMode) {
+          print("Error: No se encontró el cliente para el ID $userId");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Error: Usuario no autenticado o ID inválido.");
+      }
     }
   }
 }

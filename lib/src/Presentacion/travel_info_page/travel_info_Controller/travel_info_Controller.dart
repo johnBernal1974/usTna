@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../Helpers/Dates/DateHelpers.dart';
@@ -42,7 +43,7 @@ class TravelInfoController{
   String? apuntesAlConductor;
   late Function refresh;
   GlobalKey<ScaffoldState> key = GlobalKey<ScaffoldState>();
-  final Completer<GoogleMapController> _mapController = Completer();
+  late Completer<GoogleMapController> _mapController = Completer();
   final String _yourGoogleAPIKey = dotenv.get('API_KEY');
   CameraPosition initialPosition = const CameraPosition(
     target: LatLng(4.1461765, -73.641138),
@@ -79,10 +80,11 @@ class TravelInfoController{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isSendingNotification = false; // Indicador para controlar el envío de notificaciones
   Set<String> notifiedDrivers = <String>{};
+  Position? _position;
 
 
 
-  Future? init(BuildContext context, Function refresh) async {
+  Future<void> init(BuildContext context, Function refresh) async {
     this.context = context;
     this.refresh = refresh;
     _googleProvider = GoogleProvider();
@@ -93,10 +95,15 @@ class TravelInfoController{
     _clientProvider = ClientProvider();
     _geofireProvider = GeofireProvider();
     _pushNotificationsProvider = PushNotificationsProvider();
+
+    // Reinicia el Completer del controlador de mapa cada vez que se llama init
+    _mapController = Completer();
+
     Map<String, dynamic>? arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     await getClientInfo();
+
     if (arguments != null) {
-      updateMap(); // Actualiza el mapa cada vez que se inicia con nuevas coordenadas
+      updateMap();
       from = arguments['from'] ?? "Desconocido";
       to = arguments['to'] ?? "Desconocido";
       fromLatlng = arguments['fromlatlng'];
@@ -108,7 +115,9 @@ class TravelInfoController{
         print('Error: Los argumentos son nulos');
       }
     }
+
   }
+
 
   void dispose() {
     _streamSubscription?.cancel();
@@ -147,6 +156,10 @@ class TravelInfoController{
       await fitBounds(bounds, context);
     }
 
+  }
+  void clearMap() {
+    polylines.clear(); // Limpia todas las polilíneas actuales
+    markers.clear();   // Limpia todos los marcadores actuales
   }
 
   void addMarker(String markerId, double lat, double lng, String title, String content, BitmapDescriptor iconMarker) {
@@ -195,26 +208,23 @@ class TravelInfoController{
 
   Future<void> fitBounds(LatLngBounds bounds, BuildContext context) async {
     GoogleMapController controller = await _mapController.future;
-    double padding = MediaQuery.of(context).size.height * 0.1; // 10% del alto de la pantalla
-    // Calcular el tamaño de la distancia entre los marcadores
-    double distance = _calculateDistance(fromLatlng, toLatlng);
-    // Si la distancia es muy pequeña, ajustar el zoom
-    if (distance < 0.001) { // Puedes ajustar este valor según sea necesario
-      await controller.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng(
-          (fromLatlng.latitude + toLatlng.latitude) / 2,
-          (fromLatlng.longitude + toLatlng.longitude) / 2,
-        ),
-        15.0, // Ajusta el nivel de zoom deseado
-      ));
-    } else {
-      await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, padding));
+    if(context.mounted){
+      double padding = MediaQuery.of(context).size.height * 0.1; // 10% del alto de la pantalla
+      // Calcular el tamaño de la distancia entre los marcadores
+      double distance = _calculateDistance(fromLatlng, toLatlng);
+      // Si la distancia es muy pequeña, ajustar el zoom
+      if (distance < 0.001) { // Puedes ajustar este valor según sea necesario
+        await controller.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(
+            (fromLatlng.latitude + toLatlng.latitude) / 2,
+            (fromLatlng.longitude + toLatlng.longitude) / 2,
+          ),
+          15.0, // Ajusta el nivel de zoom deseado
+        ));
+      } else {
+        await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, padding));
+      }
     }
-  }
-
-   void clearMap() {
-    polylines.clear(); // Limpia todas las polilíneas actuales
-    markers.clear();   // Limpia todos los marcadores actuales
   }
 
   void guardarTipoServicio(String tipoServicio) async {
@@ -354,35 +364,53 @@ class TravelInfoController{
 
   Future<void> setPolylines() async {
     clearMap(); // Limpia el mapa antes de establecer nuevas rutas y marcadores
+
     PointLatLng pointFromLatlng = PointLatLng(fromLatlng.latitude, fromLatlng.longitude);
     PointLatLng pointToLatlng = PointLatLng(toLatlng.latitude, toLatlng.longitude);
+
+    // Obtenemos la ruta entre los puntos
     PolylineResult result = await PolylinePoints().getRouteBetweenCoordinates(
       _yourGoogleAPIKey,
       pointFromLatlng,
       pointToLatlng,
     );
+
     if (result.points.isNotEmpty) {
+      // Limpia la lista de puntos para la nueva ruta
       points.clear();
+
+      // Agrega los puntos obtenidos de la API
       for (PointLatLng point in result.points) {
         points.add(LatLng(point.latitude, point.longitude));
       }
+
+      // Limpiar las polilíneas anteriores
+      polylines.clear();
+
+      // Crear la nueva polyline
       Polyline polyline = Polyline(
         polylineId: const PolylineId('route'),
-        color: negro,
+        color: negro, // Asegúrate de definir el color correctamente
         points: points,
         width: 5,
       );
+
+      // Añadir la nueva polyline a la lista de polilíneas
       polylines.add(polyline);
-      // Añadir los marcadores después de configurar la ruta
+
+      // Añadir los marcadores de origen y destino
       addMarker('from', fromLatlng.latitude, fromLatlng.longitude, 'Origen', '', fromMarker);
       addMarker('to', toLatlng.latitude, toLatlng.longitude, 'Destino', '', toMarker);
-      refresh(); // Actualiza el mapa para mostrar las nuevas polilíneas y marcadores
+
+      // Llama a refresh para actualizar la vista
+      refresh();
     } else {
       if (kDebugMode) {
         print("No se encontraron puntos de ruta entre los puntos especificados.");
       }
     }
   }
+
 
   void calcularPrecio() async {
     try {

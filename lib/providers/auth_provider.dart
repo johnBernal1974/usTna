@@ -97,8 +97,8 @@ class MyAuthProvider{
 
           if (fotoPerfilUsuario == "" || fotoPerfilUsuario == "rechazada") {
             if(context.mounted){
-              Navigator.pushNamedAndRemoveUntil(context, 'take_foto_perfil', (route) => false);            }
-
+              Navigator.pushNamedAndRemoveUntil(context, 'take_foto_perfil', (route) => false);
+            }
             return;
           }
 
@@ -192,7 +192,9 @@ class MyAuthProvider{
             }
           } else {
             if(context.mounted){
+              updateStatusProcesando();
               Navigator.pushNamedAndRemoveUntil(context, 'verifying_identity', (route) => false);
+
             }
           }
         } else {
@@ -205,6 +207,30 @@ class MyAuthProvider{
       }
     }
   }
+
+  void updateStatusProcesando() async {
+    String? userId = getUser()?.uid;
+    if (userId != null) {
+
+      Client? client = await _clientProvider.getById(userId);
+      if (client != null) {
+        Map<String, dynamic> data = {
+          'Verificacion_Status': "Procesando",
+        };
+        await _clientProvider.update(data, userId);
+      } else {
+        if (kDebugMode) {
+          print("Error: No se encontró el cliente para el ID $userId");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Error: Usuario no autenticado o ID inválido.");
+      }
+    }
+  }
+
+
 
   Future<bool> signUp(String email, String password) async {
     try {
