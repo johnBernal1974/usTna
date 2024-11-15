@@ -2,13 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:url_launcher/url_launcher.dart'; // Importa el paquete
+import 'package:url_launcher/url_launcher.dart';
 import '../../../colors/colors.dart';
 import '../../commons_widgets/headers/header_text/header_text.dart';
 
-class CompartirAplicacionpage extends StatelessWidget {
+class CompartirAplicacionpage extends StatefulWidget {
   const CompartirAplicacionpage({super.key});
 
+  @override
+  State<CompartirAplicacionpage> createState() => _CompartirAplicacionpageState();
+}
+
+class _CompartirAplicacionpageState extends State<CompartirAplicacionpage> {
   Future<String?> _getLinkFromFirestore(String field) async {
     try {
       DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -31,7 +36,7 @@ class CompartirAplicacionpage extends StatelessWidget {
     try {
       await launchUrl(uri);
     } catch (e) {
-      if(context.mounted){
+      if (context.mounted) {
         _showNoWhatsAppInstalledDialog(context);
       }
     }
@@ -44,12 +49,11 @@ class CompartirAplicacionpage extends StatelessWidget {
     try {
       await launchUrl(uri);
     } catch (e) {
-      if(context.mounted){
+      if (context.mounted) {
         _showNoWhatsAppInstalledDialog(context);
       }
     }
   }
-
 
   void _showNoWhatsAppInstalledDialog(BuildContext context) {
     showDialog(
@@ -95,18 +99,22 @@ class CompartirAplicacionpage extends StatelessWidget {
           color: negro,
         ),
       ),
-      body: Container(
-        padding: EdgeInsets.all(25.r),
-        alignment: Alignment.center,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20.r),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Text(
+              'Opción 1',
+              style: TextStyle(fontSize: 18.r, fontWeight: FontWeight.w800),
+            ),
             headerText(
-              text: 'Comparte Zafiro con tus amigos, familiares y personas queridas, para que vayan más allá de lo común.',
-              fontSize: 16.r,
-              fontWeight: FontWeight.w600,
+              text: 'Comparte Zafiro con tus amigos, familiares y personas queridas mediante WhatsApp dando click en alguno de los sigientes iconos:',
+              fontSize: 14.r,
+              fontWeight: FontWeight.w500,
               color: negro,
             ),
-            const Divider(color: grisMedio),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -114,7 +122,7 @@ class CompartirAplicacionpage extends StatelessWidget {
                   onTap: () async {
                     String? linkClient = await _getLinkFromFirestore('link_descarga_client');
                     if (linkClient != null) {
-                      if(context.mounted){
+                      if (context.mounted) {
                         _shareAppLinkViaWhatsAppClient(context, linkClient);
                       }
                     }
@@ -151,7 +159,7 @@ class CompartirAplicacionpage extends StatelessWidget {
                   onTap: () async {
                     String? linkDriver = await _getLinkFromFirestore('link_descarga_driver');
                     if (linkDriver != null) {
-                      if(context.mounted){
+                      if (context.mounted) {
                         _shareAppLinkViaWhatsAppDriver(context, linkDriver);
                       }
                     }
@@ -185,11 +193,67 @@ class CompartirAplicacionpage extends StatelessWidget {
                   ),
                 ),
               ],
-            )
+            ),
+
+            const Divider(color: grisMedio),
+            const SizedBox(height: 30),
+            Text(
+              'Opción 2',
+              style: TextStyle(fontSize: 18.r, fontWeight: FontWeight.w800),
+            ),
+            Text(
+              'Dile que escanee el código QR de la app que quiere instalar',
+              style: TextStyle(fontSize: 14.r, fontWeight: FontWeight.w500),
+            ),
+
+            const SizedBox(height: 20),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  qrDriver(),
+                  const SizedBox(width: 30), // Espacio entre las imágenes
+                  qrCliente(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(2, (index) {
+                return Container(
+                  margin: EdgeInsets.symmetric(horizontal: 5.r),
+                  width: 8.r,
+                  height: 8.r,
+                  decoration: BoxDecoration(
+                    color: index == 0 ? negroLetras : grisMedio, // Punto activo y pasivo
+                    shape: BoxShape.circle,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 30),
+
           ],
         ),
       ),
     );
   }
 
+  Widget qrDriver() {
+    return Image(
+      height: 320.r,
+      width: 320.r,
+      image: const AssetImage('assets/images/qr_zafiro_conductor.png'),
+    );
+  }
+
+  Widget qrCliente() {
+    return Image(
+      height: 320.r,
+      width: 320.r,
+      image: const AssetImage('assets/images/qr_zafiro_cliente.png'),
+    );
+  }
 }

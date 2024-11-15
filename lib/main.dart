@@ -85,8 +85,8 @@ class MyApp extends StatelessWidget {
 
       routes: {
         'splash': (BuildContext context) => const SplashPage(),
-        'login': (BuildContext context) => LoginPage(),
-        'signup': (BuildContext context) => SignUpPage(),
+        'login': (BuildContext context) => const LoginPage(),
+        'signup': (BuildContext context) => const SignUpPage(),
         'verifying_identity': (BuildContext context) => const VerifyingIdentityPage(),
         'map_client': (BuildContext context) => const MapClientPage(),
         'historial_viajes': (BuildContext context) => const HistorialViajesPage(),
