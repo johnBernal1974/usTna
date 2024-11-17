@@ -10,6 +10,7 @@
 .svn/
 migrate_working_dir/
 .env
+/values/google_maps_api_key.xml
 
 # IntelliJ related
 *.iml
