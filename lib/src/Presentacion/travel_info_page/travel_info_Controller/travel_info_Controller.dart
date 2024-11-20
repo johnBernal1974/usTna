@@ -417,17 +417,40 @@ class TravelInfoController{
       Price price = await _pricesProvider.getAll();
       double? valorKilometro;
       double? valorMinuto;
+
       if (km != null) {
+        double distanciaKm = double.parse(km!.split(" ")[0].replaceAll(',', ''));
+
         if (rolUsuario == "basico") {
-          valorKilometro = double.parse(km!.split(" ")[0].replaceAll(',', '')) * price.theValorKmRegular.toDouble();
+          valorKilometro = distanciaKm * price.theValorKmRegular.toDouble();
         } else if (rolUsuario == "hotel") {
-          valorKilometro = double.parse(km!.split(" ")[0].replaceAll(',', '')) * price.theValorKmHotel.toDouble();
+          valorKilometro = distanciaKm * price.theValorKmHotel.toDouble();
         } else if (rolUsuario == "turismo") {
-          valorKilometro = double.parse(km!.split(" ")[0].replaceAll(',', '')) * price.theValorKmTurismo.toDouble();
+          valorKilometro = distanciaKm * price.theValorKmTurismo.toDouble();
         } else if (rolUsuario == "empresarial") {
-          valorKilometro = double.parse(km!.split(" ")[0].replaceAll(',', '')) * price.theValorKmTurismo.toDouble();
+          valorKilometro = distanciaKm * price.theValorKmTurismo.toDouble();
         }
+
+        // Si la distancia es superior a 20 km, aumentamos el precio en un 20%
+        // Aplicar incrementos según la distancia
+        // Aplicar incrementos según la distancia
+        if (distanciaKm > 100) {
+          valorKilometro = valorKilometro! * 2.00;  // Incremento del 100%
+        } else if (distanciaKm > 80) {
+          valorKilometro = valorKilometro! * 1.80;  // Incremento del 80%
+        } else if (distanciaKm > 50) {
+          valorKilometro = valorKilometro! * 1.50;  // Incremento del 50%
+        } else if (distanciaKm > 40) {
+          valorKilometro = valorKilometro! * 1.40;  // Incremento del 40%
+        } else if (distanciaKm > 30) {
+          valorKilometro = valorKilometro! * 1.30;  // Incremento del 30%
+        } else if (distanciaKm > 20) {
+          valorKilometro = valorKilometro! * 1.20;  // Incremento del 20%
+        }
+
+
       }
+
       if (min != null) {
         if (rolUsuario == "basico") {
           valorMinuto = double.parse(min!.split(" ")[0].replaceAll(',', '')) * price.theValorMinRegular.toDouble();
@@ -439,21 +462,48 @@ class TravelInfoController{
           valorMinuto = double.parse(min!.split(" ")[0].replaceAll(',', '')) * price.theValorMinTurismo.toDouble();
         }
       }
+
+      // Calculamos el total
       total = (valorMinuto! + valorKilometro!) * price.theDinamica.toDouble();
+
+      // Redondeamos a la centena más cercana
       total = redondearACentena(total);
-      total = total?.clamp(price.theTarifaMinimaRegular.toDouble(), double.infinity);
+
+      // Dependiendo del rol, obtenemos la tarifa mínima correspondiente
+      double tarifaMinimaRol;
+      if (rolUsuario == "basico") {
+        tarifaMinimaRol = price.theTarifaMinimaRegular.toDouble();
+      } else if (rolUsuario == "hotel") {
+        tarifaMinimaRol = price.theTarifaMinimaHotel.toDouble();
+      } else if (rolUsuario == "turismo") {
+        tarifaMinimaRol = price.theTarifaMinimaTurismo.toDouble();
+      } else {
+        tarifaMinimaRol = price.theTarifaMinimaRegular.toDouble(); // Valor por defecto
+      }
+
+      // Aseguramos que el total no sea menor a la tarifa mínima del rol
+      total = total?.clamp(tarifaMinimaRol, double.infinity);
+
+      // Convertimos el total a un entero
       totalInt = total!.toInt();
-      if (total! < price.theTarifaMinimaRegular.toDouble()) {
-        total = price.theTarifaMinimaRegular.toDouble();
+
+      // Si el total sigue siendo menor a la tarifa mínima, lo ajustamos
+      if (total! < tarifaMinimaRol) {
+        total = tarifaMinimaRol;
         totalInt = total?.toInt();
       }
+
+      // Llamamos a la función refresh para actualizar la interfaz
       refresh();
+
     } catch (e) {
       if (kDebugMode) {
         print('Error al calcular el precio: $e');
       }
     }
   }
+
+
 
   void obtenerRolUsuario() {
     rolUsuario = client?.the20Rol ?? "";
@@ -733,9 +783,9 @@ class TravelInfoController{
         tarifaInicial: total!,
         distancia: distancia.toDouble(),
         tiempoViaje: tiempoEnMinutos,
-        horaInicioViaje: '',
-        horaSolicitudViaje: DateHelpers.getStartDate(),
-        horaFinalizacionViaje: '',
+        horaInicioViaje: null,
+        horaSolicitudViaje: Timestamp.now(),
+        horaFinalizacionViaje: null,
         tipoServicio: tipoServicio ?? '',
         apuntes: apuntesAlConductor ?? ''
     );
