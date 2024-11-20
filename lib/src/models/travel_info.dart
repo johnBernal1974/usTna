@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 TravelInfo travelInfoFromJson(String str) => TravelInfo.fromJson(json.decode(str));
 
 String travelInfoToJson(TravelInfo data) => json.encode(data.toJson());
@@ -20,9 +22,9 @@ class TravelInfo {
   double tarifaInicial;
   double distancia;
   double tiempoViaje;
-  String horaSolicitudViaje;
-  String horaInicioViaje;
-  String horaFinalizacionViaje;
+  Timestamp horaSolicitudViaje;
+  Timestamp? horaInicioViaje;
+  Timestamp? horaFinalizacionViaje;
   String tipoServicio;
   String apuntes;
 

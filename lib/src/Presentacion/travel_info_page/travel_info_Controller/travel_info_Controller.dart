@@ -768,9 +768,9 @@ class TravelInfoController{
         tarifaInicial: total!,
         distancia: distancia.toDouble(),
         tiempoViaje: tiempoEnMinutos,
-        horaInicioViaje: '',
-        horaSolicitudViaje: DateHelpers.getStartDate(),
-        horaFinalizacionViaje: '',
+        horaInicioViaje: null,
+        horaSolicitudViaje: Timestamp.now(),
+        horaFinalizacionViaje: null,
         tipoServicio: tipoServicio ?? '',
         apuntes: apuntesAlConductor ?? ''
     );
