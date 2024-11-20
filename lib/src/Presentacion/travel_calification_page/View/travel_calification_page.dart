@@ -34,30 +34,33 @@ class _TravelCalificationPageState extends State<TravelCalificationPage> {
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context, designSize: const Size(375, 812));
-    return Scaffold(
-      backgroundColor: blancoCards,
-      key: _controller.key,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Asegura que la columna se extienda horizontalmente
-          children: [
-            Expanded(
-              child: ListView(
-                children: [
-                  _tituloNotificacion(),
-                  SizedBox(height: 30.r),
-                  _infoOrigenDestino(),
-                  SizedBox(height: 30.r),
-                  _tarifa(),
-                  SizedBox(height: 30.r),
-                  _subtituloCuantasEstrellas(),
-                  SizedBox(height: 10.r),
-                  _ratingBar ()
-                ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: blancoCards,
+        key: _controller.key,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, // Asegura que la columna se extienda horizontalmente
+            children: [
+              Expanded(
+                child: ListView(
+                  children: [
+                    _tituloNotificacion(),
+                    SizedBox(height: 30.r),
+                    _infoOrigenDestino(),
+                    SizedBox(height: 30.r),
+                    _tarifa(),
+                    SizedBox(height: 30.r),
+                    _subtituloCuantasEstrellas(),
+                    SizedBox(height: 10.r),
+                    _ratingBar ()
+                  ],
+                ),
               ),
-            ),
-            _botones(), // Mueve los botones fuera del Expanded
-          ],
+              _botones(), // Mueve los botones fuera del Expanded
+            ],
+          ),
         ),
       ),
     );

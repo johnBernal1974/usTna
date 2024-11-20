@@ -45,35 +45,38 @@ class _TravelMapPageState extends State<TravelMapPage> {
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     ScreenUtil.init(context, designSize: const Size(375, 812));
-    return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                _googleMapsWidget(),
-                SafeArea(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buttonCenterPosition(),
-                        ],
-                      ),
-                      Expanded(child: Container()),
-                      _clickUsuarioServicio(),
-                      SizedBox(height: 5.r),
-                      _cancelarViaje(),
-                      SizedBox(height: 15.r),
-                    ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: Column(
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  _googleMapsWidget(),
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buttonCenterPosition(),
+                          ],
+                        ),
+                        Expanded(child: Container()),
+                        _clickUsuarioServicio(),
+                        SizedBox(height: 5.r),
+                        _cancelarViaje(),
+                        SizedBox(height: 15.r),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          _cajonInformativo(screenWidth),
-        ],
+            _cajonInformativo(screenWidth),
+          ],
+        ),
       ),
     );
   }
