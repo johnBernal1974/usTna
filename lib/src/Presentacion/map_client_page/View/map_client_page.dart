@@ -149,6 +149,12 @@ class _MapClientPageState extends State<MapClientPage> {
     );
   }
 
+  void _onBottomSheetOpened() {
+    setState(() {
+      _textController.clear();
+    });
+  }
+
   Widget _letrerosADondeVamos () {
     return Visibility(
       visible: isVisibleADondeVamos,
@@ -210,6 +216,7 @@ class _MapClientPageState extends State<MapClientPage> {
             // Verificar conexión a Internet antes de ejecutar la acción
             connectionService.hasInternetConnection().then((hasConnection) {
               if (hasConnection) {
+                _onBottomSheetOpened();
                 // Llama a _mostrarCajonDeBusqueda inmediatamente
                 _mostrarCajonDeBusqueda(context, (selectedAddress) {});
               } else {
@@ -790,6 +797,7 @@ class _MapClientPageState extends State<MapClientPage> {
   }
 
   Widget _cajonDebusqueda (Function(String) onSelectAddress){
+    bool isLoading = false; // Para controlar el indicador de carga
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -922,6 +930,7 @@ class _MapClientPageState extends State<MapClientPage> {
                                       maxLines: 1,
                                       itmClick: (Prediction prediction) async {
                                         setState(() {
+                                          isLoading = true;
                                           _textController.text = prediction.description ?? '';
                                           _guardarEnHistorial(prediction.description!);
 
@@ -932,7 +941,7 @@ class _MapClientPageState extends State<MapClientPage> {
                                         LatLng? selectedLatLng = await getLatLngFromAddress(prediction.description!);
                                         if (selectedLatLng != null) {
                                           setState(() {
-                                            // Actualizar el controlador con las coordenadas
+                                            _controller.to = prediction.description!;
                                             _controller.tolatlng = selectedLatLng;
                                           });
                                         }
@@ -940,6 +949,10 @@ class _MapClientPageState extends State<MapClientPage> {
                                           _cerrarBottomSheet(context);
                                         }
                                         _controller.requestDriver();
+
+                                        setState(() {
+                                          isLoading = false; // Ocultar el indicador de carga
+                                        });
                                       },
                                     ),
                                   ),
