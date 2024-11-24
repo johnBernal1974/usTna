@@ -16,6 +16,7 @@ import '../../../colors/colors.dart';
 import '../../login_page/View/login_page.dart';
 import '../map_client_controller/map_client_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:in_app_update/in_app_update.dart';
 
 
 class MapClientPage extends StatefulWidget {
@@ -58,6 +59,7 @@ class _MapClientPageState extends State<MapClientPage> {
       _controller.init(context, refresh);
       _authProvider = MyAuthProvider();
       _checkConnection();
+      checkForUpdate();
       _loadSearchHistory();
 
     });
@@ -77,6 +79,22 @@ class _MapClientPageState extends State<MapClientPage> {
     super.dispose();
     _controller.dispose();
   }
+
+  Future<void> checkForUpdate() async {
+    try {
+      AppUpdateInfo updateInfo = await InAppUpdate.checkForUpdate();
+      print('Estado de la actualización: ${updateInfo.updateAvailability}');
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        print('¡*****************Actualización disponible!*************');
+        await InAppUpdate.performImmediateUpdate();
+      } else {
+        print('***********************No hay actualizaciones disponibles.****************');
+      }
+    } catch (e) {
+      print('***************Error al verificar actualizaciones: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
