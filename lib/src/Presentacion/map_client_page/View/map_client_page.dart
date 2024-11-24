@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_autocomplete_text_field/google_places_autocomplete_text_field.dart';
 import 'package:google_places_autocomplete_text_field/model/prediction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zafiro_cliente/providers/client_provider.dart';
 import '../../../../Helpers/customloadingDialog.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/conectivity_service.dart';
@@ -29,6 +30,7 @@ class MapClientPage extends StatefulWidget {
 class _MapClientPageState extends State<MapClientPage> {
   final ClientMapController _controller = ClientMapController();
   late MyAuthProvider _authProvider;
+  late ClientProvider _clientProvider;
   late bool isVisibleCajonBusquedaOrigenDestino = false;
   late bool isVisibleBotonBuscarVehiculo = false;
   late bool isVisibleADondeVamos = true;
@@ -58,6 +60,7 @@ class _MapClientPageState extends State<MapClientPage> {
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       _controller.init(context, refresh);
       _authProvider = MyAuthProvider();
+      _clientProvider = ClientProvider();
       _checkConnection();
       checkForUpdate();
       _loadSearchHistory();
@@ -671,7 +674,9 @@ class _MapClientPageState extends State<MapClientPage> {
                 children: [
                   TextButton(
                     onPressed: () {
+                      _clientProvider.updateLoginStatus(_authProvider.getUser()!.uid, false);
                       _authProvider.signOut();
+
                       Navigator.pushAndRemoveUntil(
                         context,
                         PageRouteBuilder(pageBuilder: (_, __, ___) => const LoginPage()),

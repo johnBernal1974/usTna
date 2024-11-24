@@ -148,7 +148,9 @@ class MyAuthProvider{
             }
           }
         } else {
-          Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+          if(context.mounted){
+            Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+          }
         }
       });
     }
