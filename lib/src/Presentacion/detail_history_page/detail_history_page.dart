@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -258,12 +259,23 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
   }
 
   Widget _inicioViaje() {
+    // Obtiene el Timestamp de inicioViaje
+    final Timestamp? inicioViajeTimestamp = _controller.travelHistory?.inicioViaje;
+
+    // Convierte el Timestamp a DateTime
+    final DateTime? inicioViajeDateTime = inicioViajeTimestamp?.toDate();
+
+    // Formatea el DateTime a un string legible
+    final String formattedInicioViaje = inicioViajeDateTime != null
+        ? DateFormat('dd/MM/yyyy hh:mm a').format(inicioViajeDateTime)
+        : 'Sin información';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTimeInfoInicio(
           title: 'Inicio del Viaje',
-          content: _controller.travelHistory?.inicioViaje ?? '',
+          content: formattedInicioViaje, // Usa el valor formateado
         ),
       ],
     );
@@ -332,16 +344,28 @@ class _DetailHistoryPageState extends State<DetailHistoryPage> {
   }
 
   Widget _finalViaje() {
+    // Obtiene el Timestamp de finalViaje
+    final Timestamp? finalViajeTimestamp = _controller.travelHistory?.finalViaje;
+
+    // Convierte el Timestamp a DateTime
+    final DateTime? finalViajeDateTime = finalViajeTimestamp?.toDate();
+
+    // Formatea el DateTime a un string legible
+    final String formattedFinalViaje = finalViajeDateTime != null
+        ? DateFormat('dd/MM/yyyy hh:mm a').format(finalViajeDateTime)
+        : 'Sin información';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTimeInfoFinal(
           title: 'Finalización del Viaje',
-          content: _controller.travelHistory?.finalViaje ?? '',
+          content: formattedFinalViaje, // Usa el valor formateado
         ),
       ],
     );
   }
+
 
 
   Widget _tarifa() {

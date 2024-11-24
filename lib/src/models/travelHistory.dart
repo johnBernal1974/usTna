@@ -1,6 +1,8 @@
 
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 TravelHistory travelHistoryFromJson(String str) => TravelHistory.fromJson(json.decode(str));
 
 String travelHistoryToJson(TravelHistory data) => json.encode(data.toJson());
@@ -14,9 +16,9 @@ class TravelHistory {
   String nameDriver;
   String apellidosDriver;
   String placa;
-  String solicitudViaje;
-  String inicioViaje;
-  String finalViaje;
+  Timestamp? solicitudViaje;
+  Timestamp? inicioViaje;
+  Timestamp? finalViaje;
   double tarifa;
   double tarifaDescuento;
   double tarifaInicial;

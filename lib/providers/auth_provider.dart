@@ -245,11 +245,14 @@ class MyAuthProvider{
   Future<void> signOut() async {
     String? userId = _firebaseAuth.currentUser?.uid;
     if (userId != null) {
-      // Actualizar el estado de inicio de sesión a false en Firestore
-      await _clientProvider.updateLoginStatus(userId, false);
+      await _firebaseAuth.signOut();
     }
-    // Cerrar sesión en Firebase Auth
-    await _firebaseAuth.signOut();
+  }
+
+  Future<bool> isUserLoggedIn() async {
+    // Si usas Firebase Authentication
+    var user = FirebaseAuth.instance.currentUser;
+    return user != null;
   }
 
 }

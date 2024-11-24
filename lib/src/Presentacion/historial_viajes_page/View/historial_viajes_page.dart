@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -78,13 +79,20 @@ class _HistorialViajesPageState extends State<HistorialViajesPage> {
             return ListView.builder(
               itemCount: snapshot.data!.length,
               itemBuilder: (_, index) {
+                String fechaFormateada = '';
+                if (snapshot.data![index].finalViaje != null) {
+                  DateTime finalDate =
+                  (snapshot.data![index].finalViaje as Timestamp).toDate();
+                  fechaFormateada =
+                      DateFormat('dd/MM/yyyy hh:mm a').format(finalDate);
+                }
                 return _historyInfo(
                   snapshot.data![index].from,
                   snapshot.data![index].to,
                   snapshot.data![index].nameDriver,
                   snapshot.data![index].apellidosDriver,
                   snapshot.data![index].placa,
-                  snapshot.data![index].finalViaje,
+                  fechaFormateada,
                   snapshot.data![index].tarifa,
                   snapshot.data![index].id,
                 );
